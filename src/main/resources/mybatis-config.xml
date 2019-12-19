@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <!-- 注册对象的空间命名 -->
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <!-- 1.加载数据库驱动 -->
+                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+                <!-- 2.数据库连接地址 -->
+                <property name="url" value="jdbc:mysql://127.0.0.1:3306/cdk8s_sculptor_boot?useSSL=false&amp;autoReconnect=true&amp;allowMultiQueries=true&amp;rewriteBatchedStatements=true&amp;serverTimezone=Asia/Shanghai&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;character_set_client=utf8mb4&amp;character_set_connection=utf8mb4&amp;character_set_database=utf8mb4&amp;character_set_results=utf8mb4&amp;character_set_server=utf8mb4&amp;character_set_system=utf8&amp;character_set_filesystem=binary&amp;collation_connection=utf8mb4_unicode_520_ci&amp;collation_database=utf8mb4_unicode_520_ci&amp;collation_server=utf8mb4_unicode_520_ci"/>
+                <!-- 数据库用户... -->
+                <property name="username" value="root"/>
+                <!-- 数据库密码... -->
+                <property name="password" value="123456"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <!-- 注册映射文件：java对象与数据库之间的xml文件路径！ -->
+<mappers>
+    <mapper resource="mapper/SysGeneratorMapper.xml"/>
+</mappers>
+</configuration>

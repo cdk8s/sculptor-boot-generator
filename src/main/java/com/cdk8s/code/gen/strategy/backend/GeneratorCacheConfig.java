@@ -1,0 +1,63 @@
+package com.cdk8s.code.gen.strategy.backend;
+
+
+import cn.hutool.core.io.IoUtil;
+import com.cdk8s.code.gen.dto.TableEntity;
+import com.cdk8s.code.gen.strategy.GeneratorStrategy;
+import com.cdk8s.code.gen.util.FileUtil;
+import com.cdk8s.code.gen.util.StringUtil;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang.StringUtils;
+import org.apache.velocity.VelocityContext;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+
+public class GeneratorCacheConfig implements GeneratorStrategy {
+
+	@Override
+	public void generatorFile(VelocityContext context, TableEntity tableEntity, Configuration config) {
+		String backendRootPath = config.getString("backendRootPath");
+		if (StringUtil.containsIgnoreCase(backendRootPath, "generator-output")) {
+			return;
+		}
+
+		String fileFullPath = getFilePath(config);
+		String fileContent;
+
+		try {
+			fileContent = FileUtil.readFileToString(fileFullPath);
+		} catch (Exception e) {
+			return;
+		}
+
+		String classServiceName = tableEntity.getUpperClassName() + "Service";
+		if (StringUtil.containsIgnoreCase(fileContent, classServiceName)) {
+			// 已包含
+			return;
+		}
+
+		String replaceValue = "// 必须配置项:RedisCacheConfiguration(不能修改该注释)\n" +
+				"\t\tRedisCacheConfiguration " + classServiceName + " = RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(1)).serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(redisSerializer)).serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jsonSerializer())).disableCachingNullValues().prefixKeysWith(\"SPRING_CACHE:" + classServiceName + ":\");";
+
+		fileContent = StringUtil.replaceOnce(fileContent, "// 必须配置项:RedisCacheConfiguration(不能修改该注释)", replaceValue);
+
+
+		String replaceValue2 = "// 必须配置项:cacheNamesMap(不能修改该注释)\n" +
+				"\t\t\t\tput(\"" + classServiceName + "\", " + classServiceName + ");";
+
+		fileContent = StringUtil.replaceOnce(fileContent, "// 必须配置项:cacheNamesMap(不能修改该注释)", replaceValue2);
+
+		GeneratorCommonUtil.generatorFileToOverrideContent(context, tableEntity, config, fileContent, fileFullPath);
+	}
+
+
+	private String getFilePath(Configuration config) {
+		String srcJavaPath = config.getString("srcJavaPath");
+		String packagePath = config.getString("cacheConfigPackage");
+
+		srcJavaPath = StringUtils.replace(srcJavaPath, "/", File.separator);
+		packagePath = StringUtils.replace(packagePath, ".", File.separator);
+		return srcJavaPath + File.separator + packagePath + File.separator + "RedisCacheConfig.java";
+	}
+}

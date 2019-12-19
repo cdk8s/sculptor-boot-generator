@@ -1,0 +1,246 @@
+package ${javaRootPackage}.service;
+
+import ${javaRootPackage}.enums.StateEnum;
+import ${javaRootPackage}.mapper.${ClassName}Mapper;
+import ${javaRootPackage}.mapstruct.${ClassName}MapStruct;
+import ${javaRootPackage}.pojo.bo.mapper.bases.IdListMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.bases.IdMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.bases.ParentIdMapperBO;
+#foreach ($column in $foreignKeyColumns)
+import ${javaRootPackage}.pojo.bo.mapper.${classname}.${ClassName}${column.upperAttrName}MapperBO;
+#end
+#foreach ($column in $paramMapperBOColumns)
+import ${javaRootPackage}.pojo.bo.mapper.${classname}.${ClassName}${column.upperAttrName}MapperBO;
+#end
+import ${javaRootPackage}.pojo.bo.service.bases.BatchDeleteServiceBO;
+import ${javaRootPackage}.pojo.bo.service.bases.BatchUpdateStateServiceBO;
+import ${javaRootPackage}.pojo.bo.service.${classname}.${ClassName}CreateServiceBO;
+import ${javaRootPackage}.pojo.bo.service.${classname}.${ClassName}UpdateServiceBO;
+import ${javaRootPackage}.pojo.bo.service.${classname}.${ClassName}PageQueryServiceBO;
+#if($isRelationTable)
+import ${javaRootPackage}.pojo.bo.service.${classname}.${ClassName}BatchCreateServiceBO;
+import ${javaRootPackage}.util.CollectionUtil;
+#end
+import ${javaRootPackage}.pojo.entity.${ClassName};
+import ${javaRootPackage}.util.id.GenerateIdUtil;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
+
+@Slf4j
+@CacheConfig(cacheNames = "${ClassName}Service")
+@Service
+public class ${ClassName}Service {
+
+	@Autowired
+	private ${ClassName}Mapper ${className}Mapper;
+
+	@Autowired
+	private ${ClassName}MapStruct ${className}MapStruct;
+
+	// =====================================查询业务 start=====================================
+
+	@Transactional(readOnly = true)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+	public ${ClassName} findOneById(Long id) {
+		return ${className}Mapper.selectById(new IdMapperBO(id));
+	}
+
+#foreach ($column in $foreignKeyColumns)
+	@Transactional(readOnly = true)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+	public ${ClassName} findOneBy${column.upperAttrName}(${column.attrType} ${column.lowerAttrName}) {
+		return ${className}Mapper.selectOneBy${column.upperAttrName}(new ${ClassName}${column.upperAttrName}MapperBO(${column.lowerAttrName}));
+	}
+
+	@Transactional(readOnly = true)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+	public List<${ClassName}> findListBy${column.upperAttrName}(${column.attrType} ${column.lowerAttrName}) {
+		return ${className}Mapper.selectBy${column.upperAttrName}(new ${ClassName}${column.upperAttrName}MapperBO(${column.lowerAttrName}));
+	}
+
+	@Transactional(readOnly = true)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+	public List<${ClassName}> findListBy${column.upperAttrName}List(List<${column.attrType}> ${column.lowerAttrName}List) {
+		return ${className}Mapper.selectBy${column.upperAttrName}List(new ${ClassName}${column.upperAttrName}MapperBO(${column.lowerAttrName}List));
+	}
+
+#end
+
+#foreach ($column in $oneParamMapperBOColumns)
+	@Transactional(readOnly = true)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+	public List<${ClassName}> findListBy${column.upperAttrName}(${column.attrType} ${column.lowerAttrName}) {
+		return ${className}Mapper.selectBy${column.upperAttrName}(new ${ClassName}${column.upperAttrName}MapperBO(${column.lowerAttrName}));
+	}
+
+#end
+
+#foreach ($column in $listParamMapperBOColumns)
+	@Transactional(readOnly = true)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+	public List<${ClassName}> findListBy${column.upperAttrName}List(List<${column.attrType}> ${column.lowerAttrName}List) {
+		return ${className}Mapper.selectBy${column.upperAttrName}List(new ${ClassName}${column.upperAttrName}MapperBO(${column.lowerAttrName}List));
+	}
+
+#end
+
+#if($isIncludeParentId)
+	@Transactional(readOnly = true)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+	public List<${ClassName}> findListByParentId(Long parentId) {
+		return ${className}Mapper.selectByParentId(new ParentIdMapperBO(parentId));
+	}
+
+	@Transactional(readOnly = true)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+	public List<${ClassName}> findListByParentIdList(List<Long> parentIdList) {
+		return ${className}Mapper.selectByParentIdList(new ParentIdMapperBO(parentIdList));
+	}
+
+#end
+
+	@Transactional(readOnly = true)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+	public List<${ClassName}> findListByIdList(List<Long> idList) {
+		return ${className}Mapper.selectByIdList(new IdListMapperBO(idList));
+	}
+
+	@Transactional(readOnly = true)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+	public List<${ClassName}> findListByServiceBO(${ClassName}PageQueryServiceBO serviceBO) {
+		return ${className}Mapper.selectByPageQueryMapperBo(${className}MapStruct.pageQueryServiceBOToMapperBO(serviceBO));
+	}
+
+	@Transactional(readOnly = true)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+	public PageInfo findPageByServiceBO(${ClassName}PageQueryServiceBO serviceBO) {
+		return PageHelper.startPage(serviceBO.getPageNum(), serviceBO.getPageSize()).doSelectPageInfo(() -> {
+			${className}Mapper.selectByPageQueryMapperBo(${className}MapStruct.pageQueryServiceBOToMapperBO(serviceBO));
+		});
+	}
+
+	// =====================================查询业务 end=====================================
+	// =====================================操作业务 start=====================================
+
+	/**
+	 * 该方法名不允许修改，被用在反射上
+	 */
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+	public void cacheEvict() {
+		// 用来主动清除所有缓存数据
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+	public Integer create(${ClassName}CreateServiceBO serviceBO) {
+		return ${className}Mapper.insert(initCreateBasicParam(serviceBO));
+	}
+
+#if($isRelationTable)
+	@Transactional(rollbackFor = Exception.class)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+	public Integer batchCreate(${ClassName}BatchCreateServiceBO serviceBO) {
+
+#foreach ($column in $foreignKeyColumns)
+		List<${column.attrType}> ${column.lowerAttrName}List = serviceBO.get${column.upperAttrName}List();
+#end
+
+#foreach ($column in $foreignKeyColumns)
+		if (CollectionUtil.isEmpty(${column.lowerAttrName}List)) {
+			throw new BusinessException("必须至少选择一个 ${column.lowerAttrName}");
+		}
+
+#end
+
+		// cdk8stodo 先删除旧数据，然后再新增新数据（自己判断哪个外键是核心）
+		batchDeleteByXXXXXXXX();
+
+		List<${ClassName}> entityList = new ArrayList<>();
+		for (Long fkey1 : fkey1_List) {
+			for (Long fkey2 : fkey2_List) {
+				${ClassName}CreateServiceBO createServiceBO = new ${ClassName}CreateServiceBO();
+				createServiceBO.setXXXXXX(fkey1);
+				createServiceBO.setXXXXXX(fkey2);
+				entityList.add(initCreateBasicParam(createServiceBO));
+			}
+		}
+
+		return ${className}Mapper.batchInsertList(entityList);
+	}
+#end
+
+	@Transactional(rollbackFor = Exception.class)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+	public Integer update(${ClassName}UpdateServiceBO serviceBO) {
+		return ${className}Mapper.updateByPrimaryKeySelective(initUpdateBasicParam(serviceBO));
+	}
+
+#if($isIncludeStateEnum)
+	@Transactional(rollbackFor = Exception.class)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+	public Integer batchUpdateState(BatchUpdateStateServiceBO serviceBO) {
+		return ${className}Mapper.updateStateEnumByIdList(${className}MapStruct.batchUpdateStateServiceBOToMapperBO(serviceBO));
+	}
+#end
+
+	@Transactional(rollbackFor = Exception.class)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+	public Integer batchDelete(BatchDeleteServiceBO serviceBO) {
+#if($isIncludeDeleteEnum)
+		return ${className}Mapper.updateDeleteEnumByIdList(${className}MapStruct.batchDeleteServiceBOToMapperBO(serviceBO));
+#else
+		return ${className}Mapper.deleteByIdList(${className}MapStruct.batchDeleteServiceBOToMapperBO(serviceBO));
+#end
+	}
+
+#foreach ($column in $foreignKeyColumns)
+	@Transactional(rollbackFor = Exception.class)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+	public Integer batchDeleteBy${column.upperAttrName}List(List<${column.attrType}> ${column.lowerAttrName}List) {
+#if($isIncludeDeleteEnum)
+		return ${className}Mapper.updateDeleteEnumBy${column.upperAttrName}List(new ${ClassName}${column.upperAttrName}MapperBO(${column.lowerAttrName}List));
+#else
+		return ${className}Mapper.deleteBy${column.upperAttrName}List(new ${ClassName}${column.upperAttrName}MapperBO(${column.lowerAttrName}List));
+#end
+	}
+#end
+
+	// =====================================操作业务 end=====================================
+	// =====================================私有方法 start=====================================
+
+	private ${ClassName} initCreateBasicParam(${ClassName}CreateServiceBO serviceBO) {
+		// cdk8stodo 根据业务补充其他属性
+		if (null == serviceBO.getId()) {
+			serviceBO.setId(GenerateIdUtil.getId());
+		}
+
+#if($isIncludeRanking)
+		if (null == serviceBO.getRanking()) {
+			serviceBO.setRanking(100);
+		}
+#end
+#if($isIncludeStateEnum)
+		if (null == serviceBO.getStateEnum()) {
+			serviceBO.setStateEnum(StateEnum.ENABLE.getCode());
+		}
+#end
+
+		return ${className}MapStruct.createServiceBOToEntity(serviceBO);
+	}
+
+	private ${ClassName} initUpdateBasicParam(${ClassName}UpdateServiceBO serviceBO) {
+		return ${className}MapStruct.updateServiceBOToEntity(serviceBO);
+	}
+
+	// =====================================私有方法 end=====================================
+
+}
+

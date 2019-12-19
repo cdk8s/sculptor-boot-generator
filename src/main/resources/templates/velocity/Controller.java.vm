@@ -1,0 +1,166 @@
+package ${javaRootPackage}.controller;
+
+import ${javaRootPackage}.aop.eventlog.EventLog;
+import ${javaRootPackage}.aop.eventlog.EventLogEnum;
+import ${javaRootPackage}.mapstruct.${ClassName}MapStruct;
+import ${javaRootPackage}.pojo.dto.param.bases.BatchDeleteRequestParam;
+import ${javaRootPackage}.pojo.dto.param.${classname}.${ClassName}CreateRequestParam;
+import ${javaRootPackage}.pojo.dto.param.${classname}.${ClassName}UpdateRequestParam;
+import ${javaRootPackage}.pojo.dto.param.${classname}.${ClassName}PageQueryParam;
+#if($isRelationTable)
+import ${javaRootPackage}.pojo.dto.param.${classname}.${ClassName}BatchCreateRequestParam;
+#end
+import ${javaRootPackage}.pojo.dto.param.bases.BatchUpdateStateRequestParam;
+import ${javaRootPackage}.pojo.dto.param.bases.IdListRequestParam;
+import ${javaRootPackage}.pojo.dto.response.${classname}.${ClassName}ResponseDTO;
+import ${javaRootPackage}.service.${ClassName}Service;
+import ${javaRootPackage}.pojo.entity.${ClassName};
+import ${javaRootPackage}.util.response.biz.R;
+import ${javaRootPackage}.aop.permission.RequestPermission;
+import ${javaRootPackage}.exception.BusinessException;
+import ${javaRootPackage}.util.UserInfoContext;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import com.github.pagehelper.PageInfo;
+import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import javax.validation.Valid;
+import java.util.List;
+
+@Api(value = "${ClassName} API")
+@Slf4j
+@RestController
+@RequestMapping("/api/${className}")
+public class ${ClassName}Controller {
+
+	@Autowired
+	private ${ClassName}Service ${className}Service;
+
+	@Autowired
+	private ${ClassName}MapStruct ${className}MapStruct;
+
+	// =====================================查询业务 start=====================================
+
+	@ApiResponses({
+			@ApiResponse(code = 200, message = "Core Object Model", response = ${ClassName}ResponseDTO.class)
+	})
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/detail", method = RequestMethod.GET)
+	public ResponseEntity<?> detail(@RequestParam Long id) {
+		return R.success(${className}MapStruct.toResponseDTO(${className}Service.findOneById(id)));
+	}
+
+	@ApiResponses({
+			@ApiResponse(code = 200, message = "Core Object Model", response = ${ClassName}ResponseDTO.class)
+	})
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/listByIdList", method = RequestMethod.POST)
+	public ResponseEntity<?> listByIdList(@Valid @RequestBody IdListRequestParam param) {
+		return R.success(${className}MapStruct.toResponseDTOList(${className}Service.findListByIdList(param.getIdList())));
+	}
+
+	@ApiResponses({
+			@ApiResponse(code = 200, message = "Core Object Model", response = ${ClassName}ResponseDTO.class)
+	})
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/list", method = RequestMethod.POST)
+	public ResponseEntity<?> list(@RequestBody ${ClassName}PageQueryParam param) {
+		List<${ClassName}> result = ${className}Service.findListByServiceBO(${className}MapStruct.pageQueryParamToServiceBO(param));
+		return R.success(${className}MapStruct.toResponseDTOList(result));
+	}
+
+	@ApiResponses({
+			@ApiResponse(code = 200, message = "Core Object Model", response = ${ClassName}ResponseDTO.class)
+	})
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/page", method = RequestMethod.POST)
+	public ResponseEntity<?> page(@Valid @RequestBody ${ClassName}PageQueryParam param) {
+		PageInfo result = ${className}Service.findPageByServiceBO(${className}MapStruct.pageQueryParamToServiceBO(param));
+		result.setList(${className}MapStruct.toResponseDTOList(result.getList()));
+		return R.success(result);
+	}
+
+	// =====================================查询业务 end=====================================
+	// =====================================操作业务 start=====================================
+
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/cacheEvict", method = RequestMethod.GET)
+	public ResponseEntity<?> cacheEvict() {
+		if (!UserInfoContext.isTopAdminUser()) {
+			throw new BusinessException("只有顶级管理员才有权限使用该功能");
+		}
+		${className}Service.cacheEvict();
+		return R.success();
+	}
+
+	@EventLog(message = "创建 ${className} 对象", operateType = EventLogEnum.OPERATE_TYPE_CREATE)
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}_create")
+#end
+	@RequestMapping(value = "/create", method = RequestMethod.POST)
+	public ResponseEntity<?> create(@Valid @RequestBody ${ClassName}CreateRequestParam param) {
+		${className}Service.create(${className}MapStruct.createRequestParamToServiceBO(param));
+		return R.success();
+	}
+
+#if($isRelationTable)
+	@EventLog(message = "批量创建 ${className} 对象", operateType = EventLogEnum.OPERATE_TYPE_CREATE)
+	@RequestMapping(value = "/batchCreate", method = RequestMethod.POST)
+	public ResponseEntity<?> batchCreate(@Valid @RequestBody ${ClassName}BatchCreateRequestParam param) {
+		${className}Service.batchCreate(${className}MapStruct.batchCreateRequestParamToServiceBO(param));
+		return R.success();
+	}
+#end
+
+	@EventLog(message = "更新 ${className} 对象", operateType = EventLogEnum.OPERATE_TYPE_UPDATE_INFO)
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}_update")
+#end
+	@RequestMapping(value = "/update", method = RequestMethod.POST)
+	public ResponseEntity<?> update(@Valid @RequestBody ${ClassName}UpdateRequestParam param) {
+		${className}Service.update(${className}MapStruct.updateRequestParamToServiceBO(param));
+		return R.success();
+	}
+
+#if($isIncludeStateEnum)
+	@EventLog(message = "批量更新 ${className} 状态", operateType = EventLogEnum.OPERATE_TYPE_UPDATE_STATE)
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}_update")
+#end
+	@RequestMapping(value = "/batchUpdateState", method = RequestMethod.POST)
+	public ResponseEntity<?> batchUpdateState(@Valid @RequestBody BatchUpdateStateRequestParam param) {
+		${className}Service.batchUpdateState(${className}MapStruct.batchUpdateStateParamToServiceBO(param));
+		return R.success();
+	}
+#end
+
+	@EventLog(message = "批量删除 ${className} 对象", operateType = EventLogEnum.OPERATE_TYPE_DELETE)
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}_delete")
+#end
+	@RequestMapping(value = "/batchDelete", method = RequestMethod.POST)
+	public ResponseEntity<?> batchDelete(@Valid @RequestBody BatchDeleteRequestParam param) {
+		${className}Service.batchDelete(${className}MapStruct.batchDeleteParamToServiceBO(param));
+		return R.success();
+	}
+
+	// =====================================操作业务 end=====================================
+	// =====================================私有方法 start=====================================
+
+	// =====================================私有方法 end=====================================
+
+}

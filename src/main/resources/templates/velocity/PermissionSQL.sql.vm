@@ -1,0 +1,24 @@
+INSERT INTO `sys_permission`(`id`, `permission_name`, `permission_code`, `permission_url`, `permission_type_enum`, `parent_id`, `parent_ids`, `icon_class`, `visible_enum`, `bool_ext_link_enum`, `bool_new_tab_enum`, `ranking`, `description`, `state_enum`, `delete_enum`, `create_date`, `create_user_id`, `update_date`, `update_user_id`, `delete_date`, `delete_user_id`)
+VALUES (${menuId}, '${tableComment}', '${tableName}', '/${className}', 2, '父ID需要你自己设置', '父ID需要你自己设置', 'chrome', 1, 2, 2, 100, NULL, 1, 1, 1574159404580, 111111111111111111, 1574159404580, 111111111111111111, NULL, NULL);
+
+INSERT INTO `sys_permission`(`id`, `permission_name`, `permission_code`, `permission_url`, `permission_type_enum`, `parent_id`, `parent_ids`, `icon_class`, `visible_enum`, `bool_ext_link_enum`, `bool_new_tab_enum`, `ranking`, `description`, `state_enum`, `delete_enum`, `create_date`, `create_user_id`, `update_date`, `update_user_id`, `delete_date`, `delete_user_id`)
+VALUES (${createButtonId}, '创建', '${tableName}_create', '/api/${className}/create', 3, '父ID需要你自己设置', '父ID需要你自己设置', NULL, 1, 2, 2, 100, NULL, 1, 1, 1574159404580, 111111111111111111, 1574159404580, 111111111111111111, NULL, NULL);
+
+INSERT INTO `sys_permission`(`id`, `permission_name`, `permission_code`, `permission_url`, `permission_type_enum`, `parent_id`, `parent_ids`, `icon_class`, `visible_enum`, `bool_ext_link_enum`, `bool_new_tab_enum`, `ranking`, `description`, `state_enum`, `delete_enum`, `create_date`, `create_user_id`, `update_date`, `update_user_id`, `delete_date`, `delete_user_id`)
+VALUES (${updateButtonId}, '修改', '${tableName}_update', '/api/${className}/update', 3, '父ID需要你自己设置', '父ID需要你自己设置', NULL, 1, 2, 2, 100, NULL, 1, 1, 1574159404580, 111111111111111111, 1574159404580, 111111111111111111, NULL, NULL);
+
+INSERT INTO `sys_permission`(`id`, `permission_name`, `permission_code`, `permission_url`, `permission_type_enum`, `parent_id`, `parent_ids`, `icon_class`, `visible_enum`, `bool_ext_link_enum`, `bool_new_tab_enum`, `ranking`, `description`, `state_enum`, `delete_enum`, `create_date`, `create_user_id`, `update_date`, `update_user_id`, `delete_date`, `delete_user_id`)
+VALUES (${deleteButtonId}, '删除', '${tableName}_delete', '/api/${className}/batchDelete', 3, '父ID需要你自己设置', '父ID需要你自己设置', NULL, 1, 2, 2, 100, NULL, 1, 1, 1574159404580, 111111111111111111, 1574159404580, 111111111111111111, NULL, NULL);
+
+
+INSERT INTO `rel_permission_role`(`id`, `permission_id`, `role_id`, `create_date`, `create_user_id`)
+VALUES (${menuId}, ${menuId}, 111111111111111111, 1574663813780, 111111111111111111);
+
+INSERT INTO `rel_permission_role`(`id`, `permission_id`, `role_id`, `create_date`, `create_user_id`)
+VALUES (${createButtonId}, ${createButtonId}, 111111111111111111, 1574663813780, 111111111111111111);
+
+INSERT INTO `rel_permission_role`(`id`, `permission_id`, `role_id`, `create_date`, `create_user_id`)
+VALUES (${updateButtonId}, ${updateButtonId}, 111111111111111111, 1574663813780, 111111111111111111);
+
+INSERT INTO `rel_permission_role`(`id`, `permission_id`, `role_id`, `create_date`, `create_user_id`)
+VALUES (${deleteButtonId}, ${deleteButtonId}, 111111111111111111, 1574663813780, 111111111111111111);

@@ -1,0 +1,48 @@
+package test.load.cdk8s
+
+import io.gatling.core.Predef._
+import io.gatling.core.scenario.Simulation
+import io.gatling.http.Predef._
+import java.util.concurrent.ThreadLocalRandom
+import scala.concurrent.duration._
+
+class ${ClassName}BatchDelete extends Simulation {
+
+  val totalConcurrency = Integer.getInteger("totalConcurrency", 100).toInt
+  val repeatTime = Integer.getInteger("repeatTime", 10).toInt
+  val injectTime = Integer.getInteger("injectTime", 10).toInt
+
+  val baseUrl = "http://sculptor.cdk8s.com:9091/sculptor-boot"
+  val testPath = "/api/${className}/batchDelete"
+
+  val headersJson = Map(
+    "Content-Type" -> "application/json;charset=UTF-8",
+    "x-token" -> "AT-102-uUCkO2NgITHWJSD16g89C9loMwCVSQqh"
+  )
+
+  val httpProtocol = http
+    .baseUrl(baseUrl)
+    .acceptHeader("application/json;charset=UTF-8")
+    .doNotTrackHeader("1")
+    .acceptLanguageHeader("zh-CN,zh;q=0.9")
+    .acceptEncodingHeader("gzip, deflate, br")
+    .userAgentHeader("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36")
+
+
+  val httpRequest = repeat(repeatTime) {
+    exec(
+      http("http_request")
+        .post(testPath)
+        .headers(headersJson)
+        .body(StringBody("批量删除对象JSON字符串"))
+    ).pause(10 millisecond)
+  }
+
+  val httpLoad = scenario("http_load").exec(httpRequest)
+
+  setUp(
+    httpLoad.inject(rampUsers(totalConcurrency) during (injectTime))
+  ).protocols(httpProtocol)
+
+
+}

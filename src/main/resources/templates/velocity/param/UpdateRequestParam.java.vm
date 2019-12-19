@@ -1,0 +1,43 @@
+package ${javaRootPackage}.pojo.dto.param.${classname};
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.Range;
+import org.hibernate.validator.constraints.SafeHtml;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
+import java.io.Serializable;
+
+@ApiModel(value = "${ClassName}UpdateRequestParam")
+@Setter
+@Getter
+@ToString(callSuper = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ${ClassName}UpdateRequestParam implements Serializable {
+
+	private static final long serialVersionUID = -1L;
+
+	@ApiModelProperty("ID")
+	@NotNull(message = "ID不能为空")
+	@Range(min = 1, message = "ID数值不正确")
+	private Long id;
+
+#foreach ($column in $updateRequestParamColumns)
+	@ApiModelProperty(value="$column.shortComment"#if($column.hidden),hidden=$column.hidden#end)
+#if($column.attrType == "String")
+	@SafeHtml(whitelistType = SafeHtml.WhiteListType.NONE)
+	@Length(max = $column.characterMaximumLength, message = "$column.shortComment长度不正确")
+#end
+#if($column.maxValue)
+	@Range(min = 1, max = $column.maxValue, message = "$column.shortComment数值不正确")
+#end
+	private $column.attrType $column.lowerAttrName;
+
+#end
+
+}

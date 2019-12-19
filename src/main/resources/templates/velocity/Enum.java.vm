@@ -1,0 +1,84 @@
+package ${javaRootPackage}.enums;
+
+import java.util.HashMap;
+import java.util.Map;
+import ${javaRootPackage}.util.RandomUtil;
+
+public enum ${enumClassEntity.upperAttrName} implements BasicEnum {
+#foreach ($enumItemEntity in $enumClassEntity.enumItemEntityList)
+	${enumItemEntity.codeName}(${enumItemEntity.code}, "${enumItemEntity.description}")#if($foreach.hasNext),
+#else;
+#end
+#end
+
+	private Integer code;
+	private String description;
+
+	${enumClassEntity.upperAttrName}(final Integer code, final String description) {
+		this.code = code;
+		this.description = description;
+	}
+
+	@Override
+	public Integer getCode() {
+		return code;
+	}
+
+	@Override
+	public String getDescription() {
+		return description;
+	}
+
+	public static Map<Integer, String> getAllEnum() {
+		Map<Integer, String> map = new HashMap<>();
+		${enumClassEntity.upperAttrName}[] allEnums = values();
+		for (${enumClassEntity.upperAttrName} enumObject : allEnums) {
+			map.put(enumObject.getCode(), enumObject.getDescription());
+		}
+		return map;
+	}
+
+	public static ${enumClassEntity.upperAttrName} getRandomEnum() {
+		${enumClassEntity.upperAttrName}[] allEnums = values();
+		return allEnums[RandomUtil.nextInt(0, allEnums.length)];
+	}
+
+	public static ${enumClassEntity.upperAttrName} getEnumByCode(Integer code) {
+		if (null == code) {
+			return null;
+		}
+		${enumClassEntity.upperAttrName}[] allEnums = values();
+		for (${enumClassEntity.upperAttrName} enumObject : allEnums) {
+			if (enumObject.getCode().equals(code)) {
+				return enumObject;
+			}
+		}
+		return null;
+	}
+
+	public static String getDescriptionByCode(Integer code) {
+		if (null == code) {
+			return null;
+		}
+		${enumClassEntity.upperAttrName}[] allEnums = values();
+		for (${enumClassEntity.upperAttrName} enumObject : allEnums) {
+			if (enumObject.getCode().equals(code)) {
+				return enumObject.getDescription();
+			}
+		}
+		return null;
+	}
+
+	public static String getNameByCode(Integer code) {
+		if (null == code) {
+			return null;
+		}
+		${enumClassEntity.upperAttrName}[] allEnums = values();
+		for (${enumClassEntity.upperAttrName} enumObject : allEnums) {
+			if (enumObject.getCode().equals(code)) {
+				return enumObject.name();
+			}
+		}
+		return null;
+	}
+}

@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="${javaRootPackage}.mapper.${ClassName}Mapper">
+
+	<resultMap id="BaseResultMap" type="${javaRootPackage}.pojo.entity.${ClassName}">
+#foreach($column in $columns)
+#if($column.lowerAttrName == $pk.lowerAttrName)
+		<id column="${pk.columnName}" property="${pk.lowerAttrName}"/>
+
+#else
+		<result column="${column.columnName}" property="${column.lowerAttrName}"/>
+#end
+#end
+	</resultMap>
+
+	<sql id="Base_Column_List">
+#foreach($column in $columns)
+
+		${column.columnName}#if($foreach.hasNext),#end
+#end
+
+	</sql>
+
+	<!--=====================================查询业务 start=====================================-->
+
+	<select id="selectById" resultMap="BaseResultMap" parameterType="${javaRootPackage}.pojo.bo.mapper.bases.IdMapperBO">
+		select
+		<include refid="Base_Column_List"/>
+		from ${class_name}
+		where id = #{id}
+
+#if($isIncludeStateEnum)
+		<if test="stateEnum != null">
+			and state_enum = #{stateEnum}
+		</if>
+#end
+#if($isIncludeDeleteEnum)
+		<if test="deleteEnum != null">
+			and delete_enum = #{deleteEnum}
+		</if>
+#end
+		limit 0,1
+	</select>
+
+
+#foreach ($column in $foreignKeyColumns)
+	<select id="selectOneBy${column.upperAttrName}" resultMap="BaseResultMap" parameterType="com.cdk8s.sculptor.pojo.bo.mapper.${classname}.${ClassName}${column.upperAttrName}MapperBO">
+		select
+		<include refid="Base_Column_List"/>
+		from ${class_name}
+		where ${column.columnName} = #{${column.lowerAttrName}}
+
+#if($isIncludeStateEnum)
+		<if test="stateEnum != null">
+			and state_enum = #{stateEnum}
+		</if>
+#end
+#if($isIncludeDeleteEnum)
+		<if test="deleteEnum != null">
+			and delete_enum = #{deleteEnum}
+		</if>
+#end
+		limit 0,1
+	</select>
+
+	<select id="selectBy${column.upperAttrName}" resultMap="BaseResultMap" parameterType="com.cdk8s.sculptor.pojo.bo.mapper.${classname}.${ClassName}${column.upperAttrName}MapperBO">
+		select
+		<include refid="Base_Column_List"/>
+		from ${class_name}
+		where ${column.columnName} = #{${column.lowerAttrName}}
+
+#if($isIncludeStateEnum)
+		<if test="stateEnum != null">
+			and state_enum = #{stateEnum}
+		</if>
+#end
+#if($isIncludeDeleteEnum)
+		<if test="deleteEnum != null">
+			and delete_enum = #{deleteEnum}
+		</if>
+#end
+#if($isIncludeRanking)
+		order by ranking asc
+#elseif($isIncludeCreateDate)
+		order by create_date desc
+#else
+		order by id desc
+#end
+	</select>
+
+	<select id="selectBy${column.upperAttrName}List" resultMap="BaseResultMap" parameterType="com.cdk8s.sculptor.pojo.bo.mapper.${classname}.${ClassName}${column.upperAttrName}MapperBO">
+		select
+		<include refid="Base_Column_List"/>
+		from ${class_name}
+		where ${column.columnName} in
+		<foreach item="item" index="index" collection="${column.lowerAttrName}List" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+
+#if($isIncludeStateEnum)
+		<if test="stateEnum != null">
+			and state_enum = #{stateEnum}
+		</if>
+#end
+#if($isIncludeDeleteEnum)
+		<if test="deleteEnum != null">
+			and delete_enum = #{deleteEnum}
+		</if>
+#end
+#if($isIncludeRanking)
+		order by ranking asc
+#elseif($isIncludeCreateDate)
+		order by create_date desc
+#else
+		order by id desc
+#end
+	</select>
+#end
+
+#foreach ($column in $oneParamMapperBOColumns)
+	<select id="selectBy${column.upperAttrName}" resultMap="BaseResultMap" parameterType="com.cdk8s.sculptor.pojo.bo.mapper.${classname}.${ClassName}${column.upperAttrName}MapperBO">
+		select
+		<include refid="Base_Column_List"/>
+		from ${class_name}
+		where ${column.columnName} = #{${column.lowerAttrName}}
+
+#if($isIncludeStateEnum)
+		<if test="stateEnum != null">
+			and state_enum = #{stateEnum}
+		</if>
+#end
+#if($isIncludeDeleteEnum)
+		<if test="deleteEnum != null">
+			and delete_enum = #{deleteEnum}
+		</if>
+#end
+#if($isIncludeRanking)
+		order by ranking asc
+#elseif($isIncludeCreateDate)
+		order by create_date desc
+#else
+		order by id desc
+#end
+	</select>
+
+#end
+
+#foreach ($column in $listParamMapperBOColumns)
+	<select id="selectBy${column.upperAttrName}List" resultMap="BaseResultMap" parameterType="com.cdk8s.sculptor.pojo.bo.mapper.${classname}.${ClassName}${column.upperAttrName}MapperBO">
+		select
+		<include refid="Base_Column_List"/>
+		from ${class_name}
+		where ${column.columnName} in
+		<foreach item="item" index="index" collection="${column.lowerAttrName}List" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+
+#if($isIncludeStateEnum)
+		<if test="stateEnum != null">
+			and state_enum = #{stateEnum}
+		</if>
+#end
+#if($isIncludeDeleteEnum)
+		<if test="deleteEnum != null">
+			and delete_enum = #{deleteEnum}
+		</if>
+#end
+#if($isIncludeRanking)
+		order by ranking asc
+#elseif($isIncludeCreateDate)
+		order by create_date desc
+#else
+		order by id desc
+#end
+	</select>
+
+#end
+
+#if($isIncludeParentId)
+	<select id="selectByParentId" resultMap="BaseResultMap" parameterType="com.cdk8s.sculptor.pojo.bo.mapper.bases.ParentIdMapperBO">
+		select
+		<include refid="Base_Column_List"/>
+		from ${class_name}
+		where parent_id = #{parentId}
+
+#if($isIncludeStateEnum)
+		<if test="stateEnum != null">
+			and state_enum = #{stateEnum}
+		</if>
+#end
+#if($isIncludeDeleteEnum)
+		<if test="deleteEnum != null">
+			and delete_enum = #{deleteEnum}
+		</if>
+#end
+#if($isIncludeRanking)
+		order by ranking asc
+#elseif($isIncludeCreateDate)
+		order by create_date desc
+#else
+		order by id desc
+#end
+	</select>
+
+	<select id="selectByParentIdList" resultMap="BaseResultMap" parameterType="com.cdk8s.sculptor.pojo.bo.mapper.bases.ParentIdMapperBO">
+		select
+		<include refid="Base_Column_List"/>
+		from ${class_name}
+		where parent_id in
+		<foreach item="item" index="index" collection="parentIdList" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+
+#if($isIncludeStateEnum)
+		<if test="stateEnum != null">
+			and state_enum = #{stateEnum}
+		</if>
+#end
+#if($isIncludeDeleteEnum)
+		<if test="deleteEnum != null">
+			and delete_enum = #{deleteEnum}
+		</if>
+#end
+#if($isIncludeRanking)
+		order by ranking asc
+#elseif($isIncludeCreateDate)
+		order by create_date desc
+#else
+		order by id desc
+#end
+	</select>
+#end
+
+
+	<select id="selectByIdList" resultMap="BaseResultMap" parameterType="${javaRootPackage}.pojo.bo.mapper.bases.IdListMapperBO">
+		select
+		<include refid="Base_Column_List"/>
+		from ${class_name}
+		where id in
+		<foreach item="item" index="index" collection="idList" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+
+#if($isIncludeStateEnum)
+		<if test="stateEnum != null">
+			and state_enum = #{stateEnum}
+		</if>
+#end
+#if($isIncludeDeleteEnum)
+		<if test="deleteEnum != null">
+			and delete_enum = #{deleteEnum}
+		</if>
+#end
+#if($isIncludeRanking)
+		order by ranking asc
+#elseif($isIncludeCreateDate)
+		order by create_date desc
+#else
+		order by id desc
+#end
+	</select>
+
+	<select id="selectByPageQueryMapperBo" resultMap="BaseResultMap" parameterType="${javaRootPackage}.pojo.bo.mapper.${classname}.${ClassName}PageQueryMapperBO">
+		select
+		<include refid="Base_Column_List"/>
+		from ${class_name}
+
+		<where>
+#foreach($column in $pageQueryParamColumns)
+#if($column.attrType == "String")
+			<if test="${column.lowerAttrName} != null and ${column.lowerAttrName} !=''">
+				and ${column.columnName} = #{${column.lowerAttrName}}
+			</if>
+#else
+			<if test="${column.lowerAttrName} != null">
+				and ${column.columnName} = #{${column.lowerAttrName}}
+			</if>
+#end
+#end
+#if($isIncludeDeleteEnum)
+			<if test="deleteEnum != null">
+				and delete_enum = #{deleteEnum}
+			</if>
+#end
+#foreach($column in $allDateColumns)
+			<if test="${column.lowerAttrName}StartDate != null">
+				and ${column.columnName} &gt;= #{${column.lowerAttrName}StartDate}
+			</if>
+			<if test="${column.lowerAttrName}EndDate != null">
+				and ${column.columnName} &lt;= #{${column.lowerAttrName}EndDate}
+			</if>
+#end
+#if($isIncludeCreateDate)
+			<if test="createDateStartDate != null">
+				and create_date &gt;= #{createDateStartDate}
+			</if>
+			<if test="createDateEndDate != null">
+				and create_date &lt;= #{createDateEndDate}
+			</if>
+#end
+#if($isIncludeUpdateDate)
+			<if test="updateDateStartDate != null">
+				and update_date &gt;= #{updateDateStartDate}
+			</if>
+			<if test="updateDateEndDate != null">
+				and update_date &lt;= #{updateDateEndDate}
+			</if>
+#end
+		</where>
+#if($isIncludeRanking)
+		order by ranking asc
+#elseif($isIncludeCreateDate)
+		order by create_date desc
+#else
+		order by id desc
+#end
+	</select>
+
+#if($isIncludeStateEnum)
+	<select id="selectByStateEnum" resultMap="BaseResultMap" parameterType="${javaRootPackage}.pojo.bo.mapper.bases.BaseQueryMapperBO">
+		select
+		<include refid="Base_Column_List"/>
+		from ${class_name}
+		where state_enum = #{stateEnum}
+#if($isIncludeRanking)
+		order by ranking asc
+#elseif($isIncludeCreateDate)
+		order by create_date desc
+#else
+		order by id desc
+#end
+	</select>
+#end
+
+#if($isIncludeDeleteEnum)
+	<select id="selectByDeleteEnum" resultMap="BaseResultMap" parameterType="${javaRootPackage}.pojo.bo.mapper.bases.BaseQueryMapperBO">
+		select
+		<include refid="Base_Column_List"/>
+		from ${class_name}
+		where delete_enum = #{deleteEnum}
+#if($isIncludeRanking)
+		order by ranking asc
+#elseif($isIncludeCreateDate)
+		order by create_date desc
+#else
+		order by id desc
+#end
+	</select>
+#end
+
+#if($isIncludeStateEnum && $isIncludeDeleteEnum)
+	<select id="selectByDeleteEnumAndStateEnum" resultMap="BaseResultMap" parameterType="${javaRootPackage}.pojo.bo.mapper.bases.BaseQueryMapperBO">
+		select
+		<include refid="Base_Column_List"/>
+		from ${class_name}
+		where delete_enum = #{deleteEnum} and state_enum = #{stateEnum}
+#if($isIncludeRanking)
+		order by ranking asc
+#elseif($isIncludeCreateDate)
+		order by create_date desc
+#else
+		order by id desc
+#end
+	</select>
+#end
+
+	<!--=====================================查询业务 end=====================================-->
+	<!--=====================================操作业务 start=====================================-->
+
+	<insert id="batchInsertList">
+		INSERT INTO ${class_name}(
+#foreach($column in $columns)
+
+		${column.columnName}#if($foreach.hasNext),#end
+#end
+
+		)VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+		(
+#foreach($column in $columns)
+
+			#{item.${column.lowerAttrName}}#if($foreach.hasNext),#end
+#end
+
+		)
+		</foreach>
+	</insert>
+
+#if($isIncludeStateEnum)
+	<update id="updateStateEnumByIdList" parameterType="${javaRootPackage}.pojo.bo.mapper.bases.BatchUpdateStateMapperBO">
+		update ${class_name}
+		set
+		state_enum = #{stateEnum},
+		update_date = #{updateDate},
+		update_user_id = #{updateUserId}
+
+		where id in
+		<foreach item="item" index="index" collection="idList" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+#end
+
+#if($isIncludeDeleteEnum)
+	<update id="updateDeleteEnumByIdList" parameterType="${javaRootPackage}.pojo.bo.mapper.bases.BatchDeleteMapperBO">
+		update ${class_name}
+		set
+		delete_enum = #{deleteEnum},
+		update_date = #{updateDate},
+		update_user_id = #{updateUserId},
+		delete_date = #{deleteDate},
+		delete_user_id = #{deleteUserId}
+
+		where id in
+		<foreach item="item" index="index" collection="idList" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+
+#foreach ($column in $foreignKeyColumns)
+	<update id="updateDeleteEnumBy${column.upperAttrName}List" parameterType="com.cdk8s.sculptor.pojo.bo.mapper.${classname}.${ClassName}${column.upperAttrName}MapperBO">
+		update ${class_name}
+		set
+		delete_enum = #{deleteEnum},
+		update_date = #{updateDate},
+		update_user_id = #{updateUserId},
+		delete_date = #{deleteDate},
+		delete_user_id = #{deleteUserId}
+
+		where ${column.columnName} in
+		<foreach item="item" index="index" collection="${column.lowerAttrName}List" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+#end
+#else
+	<delete id="deleteByIdList" parameterType="${javaRootPackage}.pojo.bo.mapper.bases.BatchDeleteMapperBO">
+		DELETE FROM ${class_name}
+		where id in
+		<foreach item="item" index="index" collection="idList" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+#foreach ($column in $foreignKeyColumns)
+	<delete id="deleteBy${column.upperAttrName}List" parameterType="com.cdk8s.sculptor.pojo.bo.mapper.${classname}.${ClassName}${column.upperAttrName}MapperBO">
+		DELETE FROM ${class_name}
+		where ${column.columnName} in
+		<foreach item="item" index="index" collection="${column.lowerAttrName}List" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+#end
+#end
+
+	<!--=====================================操作业务 end=====================================-->
+
+</mapper>

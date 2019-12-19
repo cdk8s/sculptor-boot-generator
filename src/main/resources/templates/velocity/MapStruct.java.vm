@@ -1,0 +1,146 @@
+package ${javaRootPackage}.mapstruct;
+
+import ${javaRootPackage}.pojo.bo.mapper.bases.BatchDeleteMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.bases.BatchUpdateStateMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.${classname}.${ClassName}PageQueryMapperBO;
+import ${javaRootPackage}.pojo.bo.service.bases.BatchDeleteServiceBO;
+import ${javaRootPackage}.pojo.bo.service.bases.BatchUpdateStateServiceBO;
+import ${javaRootPackage}.pojo.bo.service.${classname}.${ClassName}PageQueryServiceBO;
+import ${javaRootPackage}.pojo.bo.service.${classname}.${ClassName}CreateServiceBO;
+import ${javaRootPackage}.pojo.bo.service.${classname}.${ClassName}UpdateServiceBO;
+import ${javaRootPackage}.pojo.dto.param.${classname}.${ClassName}CreateRequestParam;
+import ${javaRootPackage}.pojo.dto.param.${classname}.${ClassName}UpdateRequestParam;
+import ${javaRootPackage}.pojo.dto.param.${classname}.${ClassName}PageQueryParam;
+import ${javaRootPackage}.pojo.dto.param.bases.BatchDeleteRequestParam;
+import ${javaRootPackage}.pojo.dto.param.bases.BatchUpdateStateRequestParam;
+import ${javaRootPackage}.pojo.dto.response.${classname}.${ClassName}ResponseDTO;
+import ${javaRootPackage}.pojo.entity.${ClassName};
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
+import org.springframework.stereotype.Component;
+import java.util.List;
+
+@SuppressWarnings("all")
+@Component
+@Mapper(componentModel = "spring")
+public interface ${ClassName}MapStruct {
+
+	@Mappings({
+#foreach ($column in $allEnumColumns)
+#if($column.lowerAttrName != "deleteEnum")
+#if($column.lowerAttrName.toString().contains("bool"))
+			@Mapping(target = "${column.lowerAttrName}String", expression = "java(${javaRootPackage}.enums.BooleanEnum.getDescriptionByCode(source.get${column.upperAttrName}()))"),
+#else
+			@Mapping(target = "${column.lowerAttrName}String", expression = "java(${javaRootPackage}.enums.${column.upperAttrName}.getDescriptionByCode(source.get${column.upperAttrName}()))"),
+#end
+#end
+#end
+#if($isIncludeCreateDate)
+			@Mapping(target = "createUsername", expression = "java(com.cdk8s.sculptor.util.UserInfoContext.getUsernameByUserId(source.getCreateUserId()))"),
+#end
+#if($isIncludeUpdateDate)
+			@Mapping(target = "updateUsername", expression = "java(com.cdk8s.sculptor.util.UserInfoContext.getUsernameByUserId(source.getUpdateUserId()))"),
+#end
+	})
+	${ClassName}ResponseDTO toResponseDTO(${ClassName} source);
+
+	List<${ClassName}ResponseDTO> toResponseDTOList(List<${ClassName}> source);
+
+	//=================================================================================
+
+	${ClassName}PageQueryServiceBO pageQueryParamToServiceBO(${ClassName}PageQueryParam source);
+
+#if($isIncludeCreateDate || $isIncludeUpdateDate || $isIncludeDeleteEnum)
+	@Mappings({
+#if($isIncludeDeleteEnum)
+			@Mapping(target = "deleteEnum", expression = "java(${javaRootPackage}.enums.DeleteEnum.NOT_DELETED.getCode())"),
+#end
+#if($isIncludeCreateDate)
+			@Mapping(target = "createDate", expression = "java(${javaRootPackage}.util.DatetimeUtil.currentEpochMilli())"),
+			@Mapping(target = "createUserId", expression = "java(${javaRootPackage}.util.UserInfoContext.getCurrentUserId())"),
+#end
+#if($isIncludeUpdateDate)
+			@Mapping(target = "updateDate", expression = "java(${javaRootPackage}.util.DatetimeUtil.currentEpochMilli())"),
+			@Mapping(target = "updateUserId", expression = "java(${javaRootPackage}.util.UserInfoContext.getCurrentUserId())"),
+#end
+	})
+#end
+	${ClassName}CreateServiceBO createRequestParamToServiceBO(${ClassName}CreateRequestParam source);
+
+#if($isRelationTable)
+	@Mappings({
+			@Mapping(target = "createDate", expression = "java(com.cdk8s.sculptor.util.DatetimeUtil.currentEpochMilli())"),
+			@Mapping(target = "createUserId", expression = "java(com.cdk8s.sculptor.util.UserInfoContext.getCurrentUserId())"),
+	})
+	${ClassName}BatchCreateServiceBO batchCreateRequestParamToServiceBO(${ClassName}BatchCreateRequestParam source);
+#end
+
+#if($isIncludeUpdateDate)
+	@Mappings({
+			@Mapping(target = "updateDate", expression = "java(${javaRootPackage}.util.DatetimeUtil.currentEpochMilli())"),
+			@Mapping(target = "updateUserId", expression = "java(${javaRootPackage}.util.UserInfoContext.getCurrentUserId())"),
+	})
+#end
+	${ClassName}UpdateServiceBO updateRequestParamToServiceBO(${ClassName}UpdateRequestParam source);
+
+#if($isIncludeUpdateDate || $isIncludeDeleteEnum)
+	@Mappings({
+#if($isIncludeDeleteEnum)
+			@Mapping(target = "deleteUserId", expression = "java(${javaRootPackage}.util.UserInfoContext.getCurrentUserId())"),
+#end
+#if($isIncludeUpdateDate)
+			@Mapping(target = "updateUserId", expression = "java(${javaRootPackage}.util.UserInfoContext.getCurrentUserId())"),
+#end
+	})
+#end
+	BatchDeleteServiceBO batchDeleteParamToServiceBO(BatchDeleteRequestParam source);
+
+#if($isIncludeStateEnum)
+	@Mappings({
+			@Mapping(target = "updateUserId", expression = "java(${javaRootPackage}.util.UserInfoContext.getCurrentUserId())"),
+	})
+	BatchUpdateStateServiceBO batchUpdateStateParamToServiceBO(BatchUpdateStateRequestParam source);
+#end
+
+    //=================================================================================
+#if($isRelationTable)
+	@Mappings({
+			@Mapping(target = "createDate", expression = "java(com.cdk8s.sculptor.util.DatetimeUtil.currentEpochMilli())"),
+			@Mapping(target = "createUserId", expression = "java(com.cdk8s.sculptor.util.UserInfoContext.getCurrentUserId())"),
+	})
+#end
+	${ClassName} createServiceBOToEntity(${ClassName}CreateServiceBO source);
+
+	List<${ClassName}> createServiceBOListToEntityList(List<${ClassName}CreateServiceBO> source);
+
+	${ClassName} updateServiceBOToEntity(${ClassName}UpdateServiceBO source);
+
+	List<${ClassName}> updateServiceBOListToEntityList(List<${ClassName}UpdateServiceBO> source);
+
+	//=================================================================================
+
+	${ClassName}PageQueryMapperBO pageQueryServiceBOToMapperBO(${ClassName}PageQueryServiceBO source);
+
+#if($isIncludeStateEnum)
+	@Mappings({
+			@Mapping(target = "updateDate", expression = "java(${javaRootPackage}.util.DatetimeUtil.currentEpochMilli())"),
+	})
+	BatchUpdateStateMapperBO batchUpdateStateServiceBOToMapperBO(BatchUpdateStateServiceBO source);
+#end
+
+#if($isIncludeUpdateDate || $isIncludeDeleteEnum)
+	@Mappings({
+#if($isIncludeDeleteEnum)
+			@Mapping(target = "deleteDate", expression = "java(${javaRootPackage}.util.DatetimeUtil.currentEpochMilli())"),
+#end
+#if($isIncludeUpdateDate)
+			@Mapping(target = "updateDate", expression = "java(${javaRootPackage}.util.DatetimeUtil.currentEpochMilli())"),
+#end
+	})
+#end
+	BatchDeleteMapperBO batchDeleteServiceBOToMapperBO(BatchDeleteServiceBO source);
+
+	//=================================================================================
+
+}

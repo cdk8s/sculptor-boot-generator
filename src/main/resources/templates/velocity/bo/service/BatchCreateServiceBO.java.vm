@@ -1,0 +1,24 @@
+package ${javaRootPackage}.pojo.bo.service.${classname};
+
+import lombok.*;
+import java.io.Serializable;
+import java.util.List;
+
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString(callSuper = true)
+public class ${ClassName}BatchCreateServiceBO implements Serializable {
+
+	private static final long serialVersionUID = -1L;
+
+	private Long createDate;
+	private Long createUserId;
+
+#foreach ($column in $foreignKeyColumns)
+	private List<${column.attrType}> ${column.lowerAttrName}List;
+
+#end
+
+}

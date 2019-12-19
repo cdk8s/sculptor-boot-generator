@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration monitoringInterval="3600" shutdownHook="disable">
+    <Properties>
+        <Property name="logFormat-highlight">
+            %highlight{[%d{yyyy-MM-dd HH:mm:ss.SSS}] - [%p] - [%m] - [%t:%T] - [%c:%L] - [Method = %M]}%n
+        </Property>
+
+        <Property name="logFormat-highlight-shorten">
+            %highlight{[%d{yyyy-MM-dd HH:mm:ss.SSS}] - [%p] - [%m] - [%t:%T] - [%c{1.}:%L] - [Method = %M]}%n
+        </Property>
+
+        <Property name="logFormat">
+            [%d{yyyy-MM-dd HH:mm:ss.SSS}] - [%p] - [%m] - [%t:%T] - [%c:%L] - [Method = %M]%n
+        </Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="to-console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${logFormat-highlight}"/>
+        </Console>
+        <Console name="to-console-shorten" target="SYSTEM_OUT">
+            <PatternLayout pattern="${logFormat-highlight-shorten}"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+
+        <AsyncRoot level="info" additivity="false" includeLocation="true">
+            <AppenderRef ref="to-console"/>
+        </AsyncRoot>
+
+        <AsyncLogger name="com.cdk8s" level="debug" additivity="false" includeLocation="true">
+            <AppenderRef ref="to-console-shorten"/>
+        </AsyncLogger>
+    </Loggers>
+</Configuration>
