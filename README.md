@@ -1,4 +1,11 @@
-# Sculptor Boot：项目思维化的《代码生成器》体系（未来可期，做个朋友吧）
+
+## 通知
+
+- 基于 Sculptor Boot 体系的 CMS 系统正在开发中，采用 PostgreSQL 进行存储、全文检索，适合中小企业
+- 目前只提交到私有的 Gitlab 中，有需要跟进的请下拉读到授权部分说明
+- Github、Gitee 的版本计划在 3 个月后发布
+
+## Sculptor Boot：项目思维化的《代码生成器》体系（未来可期，做个朋友吧）
 
 - 部分观点过于激进，未成年请在成年人的陪同下阅读：`Data is everything, everything is data`
 - **Sculptor Boot** 体系包含：
