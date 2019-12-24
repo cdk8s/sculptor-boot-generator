@@ -136,8 +136,10 @@ public class ${ClassName}ServiceTest {
 		serviceBO.setRanking(100);
 #elseif($column.upperAttrName == "StateEnum")
 		serviceBO.setStateEnum(StateEnum.ENABLE.getCode());
-#elseif($column.upperAttrName.toString().contains("Enum"))
+#elseif($column.upperAttrName.toString().contains("Enum") && !$column.upperAttrName.toString().contains("Bool"))
 		serviceBO.set${column.upperAttrName}(${column.upperAttrName}.getRandomEnum().getCode());
+#elseif($column.upperAttrName.toString().contains("Enum") && $column.upperAttrName.toString().contains("Bool"))
+		serviceBO.set${column.upperAttrName}(BooleanEnum.getRandomEnum().getCode());
 #else
 		serviceBO.set${column.upperAttrName}();
 #end
@@ -178,8 +180,10 @@ public class ${ClassName}ServiceTest {
 		serviceBO.setRanking(100);
 #elseif($column.upperAttrName == "StateEnum")
 		serviceBO.setStateEnum(StateEnum.ENABLE.getCode());
-#elseif($column.upperAttrName.toString().contains("Enum"))
+#elseif($column.upperAttrName.toString().contains("Enum") && !$column.upperAttrName.toString().contains("Bool"))
 		serviceBO.set${column.upperAttrName}(${column.upperAttrName}.getRandomEnum().getCode());
+#elseif($column.upperAttrName.toString().contains("Enum") && $column.upperAttrName.toString().contains("Bool"))
+		serviceBO.set${column.upperAttrName}(BooleanEnum.getRandomEnum().getCode());
 #else
 		serviceBO.set${column.upperAttrName}();
 #end

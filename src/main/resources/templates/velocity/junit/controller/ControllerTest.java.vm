@@ -173,8 +173,10 @@ public class ${ClassName}ControllerTest {
 		param.setRanking(100);
 #elseif($column.upperAttrName == "StateEnum")
 		param.setStateEnum(StateEnum.ENABLE.getCode());
-#elseif($column.upperAttrName.toString().contains("Enum"))
+#elseif($column.upperAttrName.toString().contains("Enum") && !$column.upperAttrName.toString().contains("Bool"))
 		param.set${column.upperAttrName}(${column.upperAttrName}.getRandomEnum().getCode());
+#elseif($column.upperAttrName.toString().contains("Enum") && $column.upperAttrName.toString().contains("Bool"))
+		param.set${column.upperAttrName}(BooleanEnum.getRandomEnum().getCode());
 #else
 		param.set${column.upperAttrName}();
 #end
@@ -212,8 +214,10 @@ public class ${ClassName}ControllerTest {
 		param.setRanking(100);
 #elseif($column.upperAttrName == "StateEnum")
 		param.setStateEnum(StateEnum.ENABLE.getCode());
-#elseif($column.upperAttrName.toString().contains("Enum"))
+#elseif($column.upperAttrName.toString().contains("Enum") && !$column.upperAttrName.toString().contains("Bool"))
 		param.set${column.upperAttrName}(${column.upperAttrName}.getRandomEnum().getCode());
+#elseif($column.upperAttrName.toString().contains("Enum") && $column.upperAttrName.toString().contains("Bool"))
+		param.set${column.upperAttrName}(BooleanEnum.getRandomEnum().getCode());
 #else
 		param.set${column.upperAttrName}();
 #end
