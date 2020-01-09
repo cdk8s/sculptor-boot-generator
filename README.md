@@ -5,6 +5,14 @@
 - 目前只提交到私有的 Gitlab 中，有需要跟进的请下拉读到授权部分说明
 - Github、Gitee 的版本计划在 3 个月后发布
 
+## 只有上云才能撑住规模化后的发展
+
+- 初期技术选型上尽可能寻找云支持的
+- 在公司规模小，自建服务基本都做不到 99.999% 高可用
+- 在公司规模发展变迅速时，如果云技术和已有技术契合，迁移成本会低很多很多
+- 目前暂定只选择：[阿里云服务](https://www.aliyun.com/minisite/goods?userCode=v2zozyxz)
+- 这里罗列了阿里云常用的一些：[产品](https://github.com/cdk8s/cdk8s-team-style/blob/master/ops/aliyun.md)
+
 ## Sculptor Boot：项目思维化的《代码生成器》体系（未来可期，做个朋友吧）
 
 - 部分观点过于激进，未成年请在成年人的陪同下阅读：`Data is everything, everything is data`
