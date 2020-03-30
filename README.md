@@ -4,6 +4,7 @@
 - 基于 Sculptor Boot 体系的 CMS 系统正在开发中，采用 PostgreSQL 进行存储、全文检索，适合中小企业
 - 目前只提交到私有的 Gitlab 中，有需要跟进的请下拉读到授权部分说明
 - Github、Gitee 的版本计划在 3 个月后发布
+- 视频教程已录制：<https://space.bilibili.com/15713069/channel/detail?cid=115644>
 
 ## 只有上云才能撑住规模化后的发展
 
