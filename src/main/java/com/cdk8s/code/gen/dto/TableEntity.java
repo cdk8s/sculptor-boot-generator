@@ -30,4 +30,9 @@ public class TableEntity {
 	 * 小写开头驼峰
 	 */
 	private String lowerClassName;
+
+	/**
+	 * 是否是 MySQL8
+	 */
+	private Boolean boolMySQL8;
 }

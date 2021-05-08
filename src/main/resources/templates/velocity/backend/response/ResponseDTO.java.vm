@@ -1,0 +1,34 @@
+package ${javaRootPackage}.pojo.dto.response.${classname};
+
+import ${javaRootPackage}.pojo.entity.bases.BaseEntity;
+import ${javaRootPackage}.pojo.dto.response.${classname}.bases.${ClassName}BaseResponseDTO;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import java.io.Serializable;
+import java.util.List;
+import java.math.BigDecimal;
+
+@Setter
+@Getter
+@ToString(callSuper = true)
+public class ${ClassName}ResponseDTO extends ${ClassName}BaseResponseDTO {
+
+	private static final long serialVersionUID = -1L;
+
+
+	// ==============非 entity 属性 start==============
+
+#if($isIncludeParentId)
+	private Integer boolParentEnum;
+
+	private String label;// 节点名称（前端组件需要）
+	private Long value;// 节点值（前端组件需要）
+	private Boolean isLeaf;//是否是子节点（前端组件需要）
+
+	private List<${ClassName}ResponseDTO> children;
+#end
+
+	// ==============非 entity 属性 end==============
+
+}

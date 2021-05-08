@@ -12,8 +12,11 @@ import java.io.File;
 public class GeneratorModel implements GeneratorStrategy {
 
 	@Override
-	public void generatorFile(VelocityContext context, TableEntity tableEntity, Configuration config) {
-		String template = "templates/velocity/front/models/Model.ts.vm";
+	public void generatorFile(VelocityContext context, Configuration config) {
+		TableEntity tableEntity = (TableEntity) context.get("tableEntity");
+		String tableRelationFrontStyle = config.getString("tableRelationFrontStyle");
+		String template = "templates/velocity/front/" + tableRelationFrontStyle + "/Model.ts.vm";
+
 		String fileName = getFileName(config, tableEntity.getUpperClassName());
 		GeneratorCommonUtil.generatorFile(context, tableEntity, config, template, fileName);
 	}

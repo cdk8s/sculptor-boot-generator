@@ -13,16 +13,18 @@ import java.io.File;
 public class GeneratorEnum implements GeneratorStrategy {
 
 	@Override
-	public void generatorFile(VelocityContext context, TableEntity tableEntity, Configuration config) {
-		String template = "templates/velocity/Enum.java.vm";
+	public void generatorFile(VelocityContext context, Configuration config) {
+		String template = "templates/velocity/backend/Enum.java.vm";
+		TableEntity tableEntity = (TableEntity) context.get("tableEntity");
 		EnumEntity enumEntity = (EnumEntity) context.get("enumClassEntity");
+
 		String fileName = getFileName(config, enumEntity.getUpperAttrName());
 		GeneratorCommonUtil.generatorFile(context, tableEntity, config, template, fileName);
 	}
 
 
 	private String getFileName(Configuration config, String className) {
-		String srcJavaPath = config.getString("srcJavaPath");
+		String srcJavaPath = config.getString("srcEnumJavaPath");
 		String packagePath = config.getString("enumPackage");
 
 		srcJavaPath = StringUtils.replace(srcJavaPath, "/", File.separator);

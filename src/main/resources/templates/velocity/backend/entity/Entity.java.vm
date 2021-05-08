@@ -1,0 +1,44 @@
+package ${javaRootPackage}.pojo.entity;
+
+import ${javaRootPackage}.pojo.entity.bases.BaseEntity;
+import ${javaRootPackage}.enums.BooleanEnum;
+import ${javaRootPackage}.pojo.entity.bases.${ClassName}Base;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import javax.persistence.Transient;
+import java.util.List;
+import java.math.BigDecimal;
+
+@Setter
+@Getter
+@ToString(callSuper = true)
+public class ${ClassName} extends ${ClassName}Base {
+
+	private static final long serialVersionUID = -1L;
+
+
+	// ==============非 entity 属性 start==============
+
+#if($isIncludeParentId)
+	@Transient
+	private Integer boolParentEnum = BooleanEnum.NO.getCode();
+
+	@Transient
+	private String label;// 节点名称（前端组件需要）
+
+	@Transient
+	private Long value;// 节点值（前端组件需要）
+
+	@Transient
+	private Boolean isLeaf;//是否是子节点（前端组件需要）
+
+	@Transient
+	private List<${ClassName}> children;
+#end
+
+	// ==============非 entity 属性 end==============
+
+}
+

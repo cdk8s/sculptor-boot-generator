@@ -1,0 +1,63 @@
+package ${javaRootPackage}.service;
+
+import ${javaRootPackage}.enums.*;
+import ${javaRootPackage}.constant.GlobalConstant;
+import ${javaRootPackage}.mapper.${ClassName}Mapper;
+import ${javaRootPackage}.mapstruct.${ClassName}MapStruct;
+import ${javaRootPackage}.pojo.bo.mapper.bases.IdListMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.bases.IdMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.bases.ParentIdMapperBO;
+import ${javaRootPackage}.pojo.bo.service.bases.IdServiceBO;
+import ${javaRootPackage}.pojo.bo.service.bases.IdListServiceBO;
+import ${javaRootPackage}.pojo.bo.service.bases.BatchDeleteServiceBO;
+import ${javaRootPackage}.pojo.bo.service.bases.BatchUpdateStateServiceBO;
+import ${javaRootPackage}.pojo.bo.service.${classname}.${ClassName}CreateServiceBO;
+import ${javaRootPackage}.pojo.bo.service.${classname}.${ClassName}UpdateServiceBO;
+import ${javaRootPackage}.pojo.bo.service.${classname}.${ClassName}PageQueryServiceBO;
+import ${javaRootPackage}.pojo.entity.${ClassName};
+import ${javaRootPackage}.util.id.GenerateIdUtil;
+import ${javaRootPackage}.util.CollectionUtil;
+import ${javaRootPackage}.mapper.ext.${ClassName}MapperExt;
+import ${javaRootPackage}.service.bases.${ClassName}ServiceBase;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
+
+@Slf4j
+#if($boolEnableCache && $isRelationTable == false)
+@CacheConfig(cacheNames = "${ClassName}Service")
+#end
+@Service
+public class ${ClassName}Service extends ${ClassName}ServiceBase {
+
+	@Autowired
+	private ${ClassName}Mapper ${className}Mapper;
+
+	@Autowired
+	private ${ClassName}MapperExt ${className}MapperExt;
+
+	@Autowired
+	private ${ClassName}MapStruct ${className}MapStruct;
+
+	// =====================================查询业务 start=====================================
+
+
+	// =====================================查询业务 end=====================================
+	// =====================================操作业务 start=====================================
+
+
+
+	// =====================================操作业务 end=====================================
+	// =====================================私有方法 start=====================================
+
+	// =====================================私有方法 end=====================================
+
+}
+

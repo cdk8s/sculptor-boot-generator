@@ -27,6 +27,20 @@ public final class JsonUtil {
 	}
 
 	/**
+	 * 将 POJO 转为 JSON 带格式化
+	 */
+	public static <T> String toJsonPretty(T obj) {
+		String json;
+		try {
+			json = OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+		} catch (Exception e) {
+			log.error("------zch------convert POJO to JSON failure", e);
+			throw new RuntimeException(e);
+		}
+		return json;
+	}
+
+	/**
 	 * 将 JSON 转为 POJO
 	 */
 	public static <T> T toObject(String json, Class<T> type) {

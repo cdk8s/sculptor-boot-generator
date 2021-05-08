@@ -1,0 +1,21 @@
+package ${javaRootPackage}.pojo.bo.service.${classname};
+
+import ${javaRootPackage}.pojo.bo.service.bases.BaseDeleteServiceBO;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.NoArgsConstructor;
+import java.util.List;
+import java.math.BigDecimal;
+
+@Setter
+@Getter
+@NoArgsConstructor
+@ToString(callSuper = true)
+public class ${ForeignKeyColumn}ListToDeleteServiceBO extends BaseDeleteServiceBO {
+
+	private static final long serialVersionUID = -1L;
+
+	private List<${attrType}> ${foreignKeyColumn}List;
+
+}

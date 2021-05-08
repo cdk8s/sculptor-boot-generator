@@ -1,0 +1,98 @@
+import { Effect } from '../../typings';
+import { Reducer } from 'redux';
+
+import {
+  treeListApiAjax,
+  createApiAjax,
+  updateApiAjax,
+  detailApiAjax,
+  deleteApiAjax,
+  cacheEvictApiAjax,
+  updateStateApiAjax,
+} from '@/services/${ClassName}Service';
+
+export const treeListApi = '${ClassName}Model/treeListApiEffect';
+export const createApi = '${ClassName}Model/createApiEffect';
+export const updateApi = '${ClassName}Model/updateApiEffect';
+export const detailApi = '${ClassName}Model/detailApiEffect';
+export const deleteApi = '${ClassName}Model/deleteApiEffect';
+export const cacheEvictApi = '${ClassName}Model/cacheEvictApiEffect';
+export const updateStateApi = '${ClassName}Model/updateStateApiEffect';
+export const detailApiReducer = '${ClassName}Model/detailApiReducer';
+
+export interface ModelType {
+  namespace: string;
+  state: {};
+  effects: {
+    treeListApiEffect: Effect;
+    createApiEffect: Effect;
+    updateApiEffect: Effect;
+    detailApiEffect: Effect;
+    deleteApiEffect: Effect;
+    cacheEvictApiEffect: Effect;
+    updateStateApiEffect: Effect;
+  };
+  reducers: {
+    treeListApiReducer: Reducer<{}>;
+    detailApiReducer: Reducer<{}>;
+  };
+}
+
+const Model: ModelType = {
+  namespace: '${ClassName}Model',
+
+  state: {
+    treeListValue: [],
+    detailValue: undefined,
+  },
+
+  effects: {
+    * treeListApiEffect({ payload }, { call, put }) {
+      const response = yield call(treeListApiAjax, payload);
+      yield put({
+        type: 'treeListApiReducer',
+        payload: response.data,
+      });
+    },
+    * createApiEffect({ payload }, { call }) {
+      return yield call(createApiAjax, payload);
+    },
+    * updateApiEffect({ payload }, { call }) {
+      return yield call(updateApiAjax, payload);
+    },
+    * detailApiEffect({ payload }, { call, put }) {
+      const response = yield call(detailApiAjax, payload);
+      yield put({
+        type: 'detailApiReducer',
+        payload: response.data,
+      });
+      return response.data;
+    },
+    * deleteApiEffect({ payload }, { call }) {
+      return yield call(deleteApiAjax, payload);
+    },
+    * cacheEvictApiEffect({ payload }, { call }) {
+      return yield call(cacheEvictApiAjax, payload);
+    },
+    * updateStateApiEffect({ payload }, { call }) {
+      return yield call(updateStateApiAjax, payload);
+    },
+  },
+
+  reducers: {
+    treeListApiReducer(state, { payload }) {
+      return {
+        ...state,
+        treeListValue: payload,
+      };
+    },
+    detailApiReducer(state, { payload }) {
+      return {
+        ...state,
+        detailValue: payload,
+      };
+    },
+  },
+};
+
+export default Model;

@@ -1,0 +1,138 @@
+package ${javaRootPackage}.mapstruct;
+
+import ${javaRootPackage}.pojo.bo.mapper.bases.BatchDeleteMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.bases.BatchUpdateStateMapperBO;
+import ${javaRootPackage}.pojo.bo.service.bases.BatchDeleteServiceBO;
+import ${javaRootPackage}.pojo.bo.service.bases.BatchUpdateStateServiceBO;
+#if($isRelationTable)
+import ${javaRootPackage}.pojo.bo.service.${classname}.bases.${ClassName}BatchCreateServiceBO;
+#end
+import ${javaRootPackage}.pojo.bo.service.${classname}.*;
+import ${javaRootPackage}.pojo.bo.mapper.${classname}.*;
+import ${javaRootPackage}.pojo.dto.param.${classname}.*;
+import ${javaRootPackage}.pojo.dto.param.bases.BatchDeleteRequestParam;
+import ${javaRootPackage}.pojo.dto.param.bases.BatchUpdateStateRequestParam;
+import ${javaRootPackage}.pojo.dto.response.${classname}.${ClassName}ResponseDTO;
+import ${javaRootPackage}.pojo.entity.${ClassName};
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
+import org.springframework.stereotype.Component;
+import java.util.List;
+
+@SuppressWarnings("all")
+@Component
+@Mapper(componentModel = "spring")
+public interface ${ClassName}MapStruct {
+
+	@Mappings({
+#foreach ($column in $allEnumColumns)
+#if($column.lowerAttrName != "deleteEnum")
+#if($column.lowerAttrName.toString().contains("bool"))
+			@Mapping(target = "${column.lowerAttrName}String", expression = "java(${javaRootPackage}.enums.BooleanEnum.getDescriptionByCode(source.get${column.upperAttrName}()))"),
+#else
+			@Mapping(target = "${column.lowerAttrName}String", expression = "java(${javaRootPackage}.enums.${column.upperAttrName}.getDescriptionByCode(source.get${column.upperAttrName}()))"),
+#end
+#end
+#end
+#if($isIncludeCreateDate)
+			@Mapping(target = "createUsername", expression = "java(${javaRootPackage}.strategy.UserInfoContext.getRealNameByUserId(source.getCreateUserId()))"),
+#end
+#if($isIncludeUpdateDate)
+			@Mapping(target = "updateUsername", expression = "java(${javaRootPackage}.strategy.UserInfoContext.getRealNameByUserId(source.getUpdateUserId()))"),
+#end
+	})
+	${ClassName}ResponseDTO toResponseDTO(${ClassName} source);
+
+	List<${ClassName}ResponseDTO> toResponseDTOList(List<${ClassName}> source);
+
+	//=================================================================================
+
+	${ClassName}PageQueryServiceBO pageQueryParamToServiceBO(${ClassName}PageQueryParam source);
+
+#foreach ($column in $oneQueryParamColumns)
+	${ClassName}${column.upperAttrName}ServiceBO ${column.lowerAttrName}RequestParamToServiceBO(${ClassName}${column.upperAttrName}RequestParam source);
+	${ClassName}${column.upperAttrName}MapperBO ${column.lowerAttrName}ServiceBOToMapperBO(${ClassName}${column.upperAttrName}ServiceBO source);
+
+#end
+
+#foreach ($column in $listQueryParamColumns)
+	${ClassName}${column.upperAttrName}ListServiceBO ${column.lowerAttrName}ListRequestParamToServiceBO(${ClassName}${column.upperAttrName}ListRequestParam source);
+	${ClassName}${column.upperAttrName}ListMapperBO ${column.lowerAttrName}ListServiceBOToMapperBO(${ClassName}${column.upperAttrName}ListServiceBO source);
+
+#end
+
+#foreach ($column in $foreignKeyColumns)
+	${ClassName}${column.upperAttrName}ServiceBO ${column.lowerAttrName}RequestParamToServiceBO(${ClassName}${column.upperAttrName}RequestParam source);
+	${ClassName}${column.upperAttrName}MapperBO ${column.lowerAttrName}ServiceBOToMapperBO(${ClassName}${column.upperAttrName}ServiceBO source);
+	${ClassName}${column.upperAttrName}ListServiceBO ${column.lowerAttrName}ListRequestParamToServiceBO(${ClassName}${column.upperAttrName}ListRequestParam source);
+	${ClassName}${column.upperAttrName}ListMapperBO ${column.lowerAttrName}ListServiceBOToMapperBO(${ClassName}${column.upperAttrName}ListServiceBO source);
+	${ClassName}${column.upperAttrName}ListToDeleteServiceBO ${column.lowerAttrName}ListToDeleteRequestParamToServiceBO(${ClassName}${column.upperAttrName}ListToDeleteRequestParam source);
+	${ClassName}${column.upperAttrName}ListToDeleteMapperBO ${column.lowerAttrName}ListToDeleteServiceBOToMapperBO(${ClassName}${column.upperAttrName}ListToDeleteServiceBO source);
+
+#end
+
+#foreach ($column in $likeParamColumns)
+	${ClassName}${column.upperAttrName}LikeQueryServiceBO ${column.lowerAttrName}LikeQueryParamToServiceBO(${ClassName}${column.upperAttrName}LikeQueryParam source);
+
+#end
+
+	${ClassName}CreateServiceBO createRequestParamToServiceBO(${ClassName}CreateRequestParam source);
+
+#if($isRelationTable)
+	${ClassName}BatchCreateServiceBO batchCreateRequestParamToServiceBO(${ClassName}BatchCreateRequestParam source);
+#end
+
+	${ClassName}UpdateServiceBO updateRequestParamToServiceBO(${ClassName}UpdateRequestParam source);
+
+	BatchDeleteServiceBO batchDeleteParamToServiceBO(BatchDeleteRequestParam source);
+
+#if($isRelationTable)
+	${ClassName}${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}ToDeleteServiceBO deleteBy${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}ParamToServiceBO(${ClassName}${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}ToDeleteRequestParam source);
+#end
+
+#if($isIncludeStateEnum)
+	BatchUpdateStateServiceBO batchUpdateStateParamToServiceBO(BatchUpdateStateRequestParam source);
+#end
+
+#if($isRelationTable == false)
+	//=================================================================================
+
+	@Mappings({
+			@Mapping(source = "updateDate", target = "createDate"),
+			@Mapping(source = "updateUserId", target = "createUserId"),
+	})
+	${ClassName}CreateServiceBO updateServiceBOToCreateServiceBO(${ClassName}UpdateServiceBO source);
+
+	//=================================================================================
+#end
+
+	${ClassName} createServiceBOToEntity(${ClassName}CreateServiceBO source);
+
+	List<${ClassName}> createServiceBOListToEntityList(List<${ClassName}CreateServiceBO> source);
+
+	${ClassName} updateServiceBOToEntity(${ClassName}UpdateServiceBO source);
+
+	List<${ClassName}> updateServiceBOListToEntityList(List<${ClassName}UpdateServiceBO> source);
+
+	//=================================================================================
+
+	${ClassName}PageQueryMapperBO pageQueryServiceBOToMapperBO(${ClassName}PageQueryServiceBO source);
+
+#foreach ($column in $likeParamColumns)
+	${ClassName}${column.upperAttrName}LikeQueryMapperBO ${column.lowerAttrName}LikeQueryServiceBOToMapperBO(${ClassName}${column.upperAttrName}LikeQueryServiceBO source);
+
+#end
+
+#if($isIncludeStateEnum)
+	BatchUpdateStateMapperBO batchUpdateStateServiceBOToMapperBO(BatchUpdateStateServiceBO source);
+#end
+
+	BatchDeleteMapperBO batchDeleteServiceBOToMapperBO(BatchDeleteServiceBO source);
+
+#if($isRelationTable)
+	${ClassName}${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}ToDeleteMapperBO deleteBy${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}ServiceBOToMapperBO(${ClassName}${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}ToDeleteServiceBO source);
+#end
+	//=================================================================================
+
+}

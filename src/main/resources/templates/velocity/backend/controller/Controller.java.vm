@@ -1,0 +1,55 @@
+package ${javaRootPackage}.controller;
+
+import ${javaRootPackage}.aop.eventlog.EventLog;
+import ${javaRootPackage}.aop.eventlog.EventLogEnum;
+import ${javaRootPackage}.mapstruct.${ClassName}MapStruct;
+import ${javaRootPackage}.pojo.dto.param.bases.BatchDeleteRequestParam;
+import ${javaRootPackage}.pojo.dto.param.${classname}.${ClassName}CreateRequestParam;
+import ${javaRootPackage}.pojo.dto.param.${classname}.${ClassName}UpdateRequestParam;
+import ${javaRootPackage}.pojo.dto.param.${classname}.${ClassName}PageQueryParam;
+import ${javaRootPackage}.controller.bases.${ClassName}ControllerBase;
+#if($isRelationTable)
+import ${javaRootPackage}.pojo.dto.param.${classname}.${ClassName}BatchCreateRequestParam;
+#end
+import ${javaRootPackage}.pojo.dto.param.bases.BatchUpdateStateRequestParam;
+import ${javaRootPackage}.pojo.dto.param.bases.IdListRequestParam;
+import ${javaRootPackage}.pojo.dto.response.${classname}.${ClassName}ResponseDTO;
+import ${javaRootPackage}.service.${ClassName}Service;
+import ${javaRootPackage}.pojo.entity.${ClassName};
+import ${javaRootPackage}.util.response.biz.R;
+import ${javaRootPackage}.aop.permission.RequestPermission;
+import ${javaRootPackage}.exception.BusinessException;
+import ${javaRootPackage}.strategy.UserInfoContext;
+import com.github.pagehelper.PageInfo;
+import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import javax.validation.Valid;
+import java.util.List;
+
+@Slf4j
+@RestController
+@RequestMapping("/api/${className}")
+public class ${ClassName}Controller extends ${ClassName}ControllerBase {
+
+	@Autowired
+	private ${ClassName}Service ${className}Service;
+
+	@Autowired
+	private ${ClassName}MapStruct ${className}MapStruct;
+
+	// =====================================查询业务 start=====================================
+
+
+	// =====================================查询业务 end=====================================
+	// =====================================操作业务 start=====================================
+
+
+	// =====================================操作业务 end=====================================
+	// =====================================私有方法 start=====================================
+
+	// =====================================私有方法 end=====================================
+
+}

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="${javaRootPackage}.mapper.ext.${ClassName}MapperExt">
+
+	<resultMap id="BaseResultMap" type="${javaRootPackage}.pojo.entity.${ClassName}">
+#foreach($column in $columns)
+#if($column.lowerAttrName == $pk.lowerAttrName)
+		<id column="${pk.columnName}" property="${pk.lowerAttrName}"/>
+
+#else
+		<result column="${column.columnName}" property="${column.lowerAttrName}"/>
+#end
+#end
+	</resultMap>
+
+	<sql id="Base_Column_List_Ext">
+#foreach($column in $columns)
+
+		${lower_first}.${column.columnName}#if($foreach.hasNext),#end
+#end
+
+	</sql>
+
+	<!--=====================================查询业务 start=====================================-->
+
+	<select id="selectByPageQueryMapperBoExt" resultMap="${javaRootPackage}.mapper.${ClassName}Mapper.BaseResultMap" parameterType="${javaRootPackage}.pojo.bo.mapper.${classname}.${ClassName}PageQueryMapperBO">
+		select
+		<include refid="Base_Column_List_Ext"/>
+		from ${class_name} as ${lower_first}
+
+		<where>
+#foreach($column in $pageQueryParamColumns)
+#if($column.attrType == "String")
+			<if test="${column.lowerAttrName} != null and ${column.lowerAttrName} !=''">
+				and ${lower_first}.${column.columnName} = #{${column.lowerAttrName}}
+			</if>
+#else
+			<if test="${column.lowerAttrName} != null">
+				and ${lower_first}.${column.columnName} = #{${column.lowerAttrName}}
+			</if>
+#end
+#end
+#if($isIncludeDeleteEnum)
+			<if test="deleteEnum != null">
+				and ${lower_first}.delete_enum = #{deleteEnum}
+			</if>
+#end
+#foreach($column in $allDateColumns)
+			<if test="${column.lowerAttrName}StartDate != null">
+				and ${lower_first}.${column.columnName} &gt;= #{${column.lowerAttrName}StartDate}
+			</if>
+			<if test="${column.lowerAttrName}EndDate != null">
+				and ${lower_first}.${column.columnName} &lt;= #{${column.lowerAttrName}EndDate}
+			</if>
+#end
+#if($isIncludeCreateDate)
+			<if test="createDateStartDate != null">
+				and ${lower_first}.create_date &gt;= #{createDateStartDate}
+			</if>
+			<if test="createDateEndDate != null">
+				and ${lower_first}.create_date &lt;= #{createDateEndDate}
+			</if>
+#end
+#if($isIncludeUpdateDate)
+			<if test="updateDateStartDate != null">
+				and ${lower_first}.update_date &gt;= #{updateDateStartDate}
+			</if>
+			<if test="updateDateEndDate != null">
+				and ${lower_first}.update_date &lt;= #{updateDateEndDate}
+			</if>
+#end
+		</where>
+		<choose>
+			<when test="orderByList != null">
+				order by
+				<foreach item="item" index="index" collection="orderByList" open="" separator="," close="">
+					${item}
+				</foreach>
+			</when>
+			<otherwise>
+#if($isIncludeRanking)
+				order by ${lower_first}.ranking asc
+#elseif($isIncludeCreateDate)
+				order by ${lower_first}.create_date desc
+#else
+				order by ${lower_first}.id desc
+#end
+			</otherwise>
+		</choose>
+	</select>
+
+	<!--=====================================查询业务 end=====================================-->
+	<!--=====================================操作业务 start=====================================-->
+
+
+	<!--=====================================操作业务 end=====================================-->
+
+</mapper>

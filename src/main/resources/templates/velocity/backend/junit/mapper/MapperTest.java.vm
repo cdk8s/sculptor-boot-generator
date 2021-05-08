@@ -1,0 +1,296 @@
+package ${javaRootPackage}.mapper;
+
+import ${javaRootPackage}.Application;
+import ${javaRootPackage}.constant.GlobalConstant;
+import ${javaRootPackage}.constant.GlobalConstantToJunit;
+import ${javaRootPackage}.enums.*;
+import ${javaRootPackage}.pojo.bo.mapper.bases.BatchDeleteMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.bases.BatchUpdateStateMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.${classname}.${ClassName}PageQueryMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.bases.BaseQueryMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.bases.IdListMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.bases.IdMapperBO;
+import ${javaRootPackage}.pojo.entity.${ClassName};
+import ${javaRootPackage}.util.DatetimeUtil;
+import ${javaRootPackage}.strategy.UserInfoContext;
+import ${javaRootPackage}.util.id.GenerateIdUtil;
+import ${javaRootPackage}.util.RandomUtil;
+import ${javaRootPackage}.enums.UserTypeEnum;
+import com.cdk8s.tkey.client.rest.pojo.dto.OauthUserAttribute;
+import com.cdk8s.tkey.client.rest.pojo.dto.OauthUserProfile;
+import com.google.common.collect.Lists;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.hamcrest.Matchers;
+import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import static org.junit.Assert.assertThat;
+
+@Slf4j
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = Application.class)
+public class ${ClassName}MapperTest {
+
+	private static final Long ID = GenerateIdUtil.getId();
+
+	@Autowired
+	private ${ClassName}Mapper ${className}Mapper;
+
+	// =====================================预处理 start=====================================
+
+	@SneakyThrows
+	@BeforeClass
+	public static void a_beforeClass() {
+		OauthUserProfile oauthUserProfile = new OauthUserProfile();
+		oauthUserProfile.setUsername(GlobalConstantToJunit.USERNAME);
+		oauthUserProfile.setName(GlobalConstantToJunit.USERNAME);
+		oauthUserProfile.setId(GlobalConstantToJunit.USER_ID);
+		oauthUserProfile.setUserId(GlobalConstantToJunit.USER_ID);
+
+		OauthUserAttribute oauthUserAttribute = new OauthUserAttribute();
+		Map<String, Object> userAttributeExt = new HashMap<>();
+		userAttributeExt.put(GlobalConstant.USER_TYPE_ENUM_MAP_KEY, UserTypeEnum.ADMIN.getCode());
+		userAttributeExt.put(GlobalConstant.TENANT_ID_MAP_KEY, GlobalConstant.TOP_TENANT_ID);
+		oauthUserAttribute.setUserAttributeExt(userAttributeExt);
+
+		oauthUserAttribute.setRealName(GlobalConstantToJunit.USERNAME);
+		oauthUserAttribute.setEmail(GlobalConstantToJunit.USER_EMAIL);
+		oauthUserAttribute.setUserId(GlobalConstantToJunit.USER_ID);
+		oauthUserAttribute.setUsername(GlobalConstantToJunit.USERNAME);
+		oauthUserAttribute.setTenantId(GlobalConstantToJunit.TOP_TENANT_ID);
+		oauthUserAttribute.setUserType(String.valueOf(UserTypeEnum.ADMIN.getCode()));
+
+		oauthUserProfile.setUserAttribute(oauthUserAttribute);
+		UserInfoContext.setCurrentUser(oauthUserProfile);
+	}
+
+	// =====================================预处理 end=====================================
+	// =====================================查询业务 start=====================================
+
+	@Test
+	public void a_selectById() {
+		${ClassName} result = ${className}Mapper.selectById(new IdMapperBO(ID));
+
+		assertThat(result, Matchers.notNullValue());
+	}
+
+	@Test
+	public void a_selectByIdList() {
+		ArrayList<Long> idList = Lists.newArrayList(ID, 222222222222222222L);
+		List<${ClassName}> result = ${className}Mapper.selectByIdList(new IdListMapperBO(idList));
+
+		assertThat(result.size(), Matchers.greaterThan(0));
+	}
+
+	@Test
+	public void a_selectAll() {
+		List<${ClassName}> result = ${className}Mapper.selectAll();
+
+		assertThat(result.size(), Matchers.greaterThan(0));
+	}
+
+	@Test
+	public void a_selectByPageQueryMapperBo() {
+		${ClassName}PageQueryMapperBO mapperBO = new ${ClassName}PageQueryMapperBO();
+#if($isIncludeStateEnum)
+		mapperBO.setStateEnum(StateEnum.ENABLE.getCode());
+#end
+#if($isIncludeDeleteEnum)
+		mapperBO.setDeleteEnum(DeleteEnum.NOT_DELETED.getCode());
+#end
+		mapperBO.setCreateDateStartDate(631183520000L);
+		mapperBO.setCreateDateEndDate(1893487520000L);
+
+		List<${ClassName}> result = ${className}Mapper.selectByPageQueryMapperBo(mapperBO);
+
+		assertThat(result.size(), Matchers.greaterThan(0));
+	}
+
+#if($isIncludeStateEnum)
+	@Test
+	public void a_selectByStateEnum() {
+		BaseQueryMapperBO bo = new BaseQueryMapperBO();
+		bo.setStateEnum(StateEnum.ENABLE.getCode());
+		List<${ClassName}> result = ${className}Mapper.selectByStateEnum(bo);
+
+		assertThat(result.size(), Matchers.greaterThan(0));
+	}
+#end
+
+#if($isIncludeDeleteEnum)
+	@Test
+	public void a_selectByDeleteEnum() {
+		BaseQueryMapperBO bo = new BaseQueryMapperBO();
+		bo.setDeleteEnum(DeleteEnum.NOT_DELETED.getCode());
+		List<${ClassName}> result = ${className}Mapper.selectByDeleteEnum(bo);
+
+		assertThat(result.size(), Matchers.greaterThan(0));
+	}
+#end
+
+#if($isIncludeStateEnum && $isIncludeDeleteEnum)
+	@Test
+	public void a_selectByDeleteEnumAndStateEnum() {
+		BaseQueryMapperBO bo = new BaseQueryMapperBO();
+		bo.setStateEnum(StateEnum.ENABLE.getCode());
+		bo.setDeleteEnum(DeleteEnum.NOT_DELETED.getCode());
+
+		List<${ClassName}> result = ${className}Mapper.selectByDeleteEnumAndStateEnum(bo);
+
+		assertThat(result.size(), Matchers.greaterThan(0));
+	}
+#end
+
+	// =====================================查询业务 end=====================================
+	// =====================================操作业务 start=====================================
+
+	@Test
+	public void a_batchCreate() {
+		long currentEpochMilli = DatetimeUtil.currentEpochMilli();
+		Long currentUserId = UserInfoContext.getCurrentUserId();
+
+		List<${ClassName}> entityList = new ArrayList<>();
+		for (int i = 0; i < 13; i++) {
+			${ClassName} entity = new ${ClassName}();
+			// cdk8stodo 根据业务补充其他属性：RandomUtil.randomAlphabetic(6)
+			entity.setId(ID + i);
+#foreach ($column in $createColumnsToMapperTest)
+#if($column.boolIsNullable == false && $column.upperAttrName != "Id")
+#if($column.upperAttrName == "Ranking")
+			entity.setRanking(GlobalConstant.MAX_RANKING);
+#elseif($column.upperAttrName == "ParentId")
+			entity.setParentId(GlobalConstant.TOP_PARENT_ID);
+#elseif($column.upperAttrName == "ParentIds")
+			entity.setParentIds(String.valueOf(GlobalConstant.TOP_PARENT_ID));
+#elseif($column.upperAttrName == "StateEnum")
+			entity.setStateEnum(StateEnum.ENABLE.getCode());
+#elseif($column.upperAttrName.toString().contains("UserId"))
+			entity.set${column.upperAttrName}(UserInfoContext.getCurrentUserId());
+#elseif($column.upperAttrName.toString().contains("Enum") && !$column.upperAttrName.toString().contains("Bool"))
+			entity.set${column.upperAttrName}(${column.upperAttrName}.getRandomEnum().getCode());
+#elseif($column.upperAttrName.toString().contains("Enum") && $column.upperAttrName.toString().contains("Bool"))
+			entity.set${column.upperAttrName}(BooleanEnum.getRandomEnum().getCode());
+#elseif($column.attrType == "BigDecimal")
+			entity.set${column.upperAttrName}(RandomUtil.nextBigDecimal(1, 100));
+#elseif($column.attrType == "String")
+			entity.set${column.upperAttrName}(RandomUtil.randomAlphabetic(6));
+#elseif($column.attrType == "Integer")
+			entity.set${column.upperAttrName}(RandomUtil.nextInt(1,10));
+#elseif($column.attrType == "Long")
+			entity.set${column.upperAttrName}(RandomUtil.nextLong(1, 10));
+#else
+			entity.set${column.upperAttrName}();
+#end
+#end
+#end
+
+#foreach ($column in $createColumnsToMapperTest)
+#if($column.boolIsNullable == true && $column.upperAttrName != "Id")
+#if($column.attrType == "String")
+			entity.set${column.upperAttrName}(RandomUtil.randomAlphabetic(6));
+#elseif($column.attrType == "BigDecimal")
+			entity.set${column.upperAttrName}(RandomUtil.nextBigDecimal(1, 100));
+#elseif($column.attrType == "Integer")
+			entity.set${column.upperAttrName}(RandomUtil.nextInt(1,10));
+#elseif($column.attrType == "Long")
+			entity.set${column.upperAttrName}(RandomUtil.nextLong(1, 10));
+#elseif($column.upperAttrName.toString().contains("UserId"))
+			entity.set${column.upperAttrName}(UserInfoContext.getCurrentUserId());
+#else
+			entity.set${column.upperAttrName}();
+#end
+#end
+#end
+
+
+#if($isIncludeDeleteEnum)
+			entity.setDeleteEnum(DeleteEnum.NOT_DELETED.getCode());
+#end
+#if($isIncludeCreateDate)
+			entity.setCreateDate(currentEpochMilli);
+			entity.setCreateUserId(currentUserId);
+#end
+#if($isIncludeUpdateDate)
+			entity.setUpdateDate(currentEpochMilli);
+			entity.setUpdateUserId(currentUserId);
+#end
+			entityList.add(entity);
+		}
+
+		int result = ${className}Mapper.batchInsertList(entityList);
+
+		assertThat(result, Matchers.greaterThan(0));
+	}
+
+#if($isIncludeStateEnum)
+	@Transactional
+	@Test
+	public void b_updateStateEnumByIdList() {
+		long currentEpochMilli = DatetimeUtil.currentEpochMilli();
+		ArrayList<Long> idList = Lists.newArrayList(ID, 222222222222222222L);
+
+		BatchUpdateStateMapperBO bo = new BatchUpdateStateMapperBO();
+		bo.setIdList(idList);
+		bo.setStateEnum(StateEnum.DISABLE.getCode());
+		bo.setUpdateDate(currentEpochMilli);
+		bo.setUpdateUserId(UserInfoContext.getCurrentUserId());
+
+		int result = ${className}Mapper.updateStateEnumByIdList(bo);
+
+		assertThat(result, Matchers.greaterThan(0));
+	}
+#end
+
+#if($isIncludeDeleteEnum)
+	@Transactional
+	@Test
+	public void m_updateDeleteEnumByIdList() {
+		long currentEpochMilli = DatetimeUtil.currentEpochMilli();
+		ArrayList<Long> idList = Lists.newArrayList(ID, 222222222222222222L);
+
+		BatchDeleteMapperBO bo = new BatchDeleteMapperBO();
+		bo.setIdList(idList);
+		bo.setDeleteEnum(DeleteEnum.DELETED.getCode());
+		bo.setUpdateDate(currentEpochMilli);
+		bo.setUpdateUserId(UserInfoContext.getCurrentUserId());
+		bo.setDeleteDate(currentEpochMilli);
+		bo.setDeleteUserId(UserInfoContext.getCurrentUserId());
+
+		int result = ${className}Mapper.updateDeleteEnumByIdList(bo);
+
+		assertThat(result, Matchers.greaterThan(0));
+	}
+#else
+	@Transactional
+	@Test
+	public void m_deleteByIdList() {
+		ArrayList<Long> idList = Lists.newArrayList(ID, 222222222222222222L);
+
+		BatchDeleteMapperBO bo = new BatchDeleteMapperBO();
+		bo.setIdList(idList);
+
+		int result = ${className}Mapper.deleteByIdList(bo);
+
+		assertThat(result, Matchers.greaterThan(0));
+	}
+#end
+
+	// =====================================操作业务 end=====================================
+	// =====================================私有方法 start=====================================
+
+	// =====================================私有方法 end=====================================
+
+
+}

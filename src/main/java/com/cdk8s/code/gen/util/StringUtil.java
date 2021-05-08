@@ -2,6 +2,7 @@ package com.cdk8s.code.gen.util;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Splitter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.List;
 /**
  * 字符串工具类, 继承StringUtils类
  */
+@Slf4j
 public final class StringUtil {
 
 	public static final String EMPTY = "";
@@ -176,6 +178,21 @@ public final class StringUtil {
 	}
 
 	/**
+	 * 被删除的部分必须是在最尾巴，不然不会被删除，原值返回
+	 */
+	public static String removeEnd(final String text, final String searchString) {
+		return StringUtils.removeEnd(text, searchString);
+	}
+
+	public static String removeStart(final String text, final String searchString) {
+		return StringUtils.removeStart(text, searchString);
+	}
+
+	public static String remove(final String text, final String searchString) {
+		return StringUtils.remove(text, searchString);
+	}
+
+	/**
 	 * 比如：(aa#bb#, #) = aa,bb（一共 2 个元素）
 	 */
 	public static List<String> split(String str, String separator) {
@@ -225,6 +242,15 @@ public final class StringUtil {
 	//=====================================其他包 start=====================================
 
 	/**
+	 * 大写开头的驼峰改为小写开头的驼峰
+	 */
+	public static String upperCamelToLowerCamel(String str) {
+		CaseFormat fromFormat = CaseFormat.UPPER_CAMEL;//
+		CaseFormat toFormat = CaseFormat.LOWER_CAMEL;
+		return fromFormat.to(toFormat, str);
+	}
+
+	/**
 	 * 下划线的字符串转换为驼峰式字符串
 	 */
 	public static String lowerUnderscoreToLowerCamel(String str) {
@@ -240,6 +266,54 @@ public final class StringUtil {
 		CaseFormat fromFormat = CaseFormat.LOWER_CAMEL;
 		CaseFormat toFormat = CaseFormat.LOWER_UNDERSCORE;
 		return fromFormat.to(toFormat, str);
+	}
+
+	/**
+	 * 去除 html 标签
+	 */
+	public static String removeHtml(String str) {
+		if (isBlank(str)) {
+			return "";
+		}
+		return str.replaceAll("\\&[a-zA-Z]{1,10};", "").replaceAll("<[^>]*>", "").replaceAll("[(/>)<]", "");
+	}
+
+	/**
+	 * 删除两个字符串之间的内容，包含查询字符串本身内容
+	 */
+	public static String removeRangeString(String body, String str1, String str2) {
+		while (true) {
+			int index1 = body.indexOf(str1);
+			if (index1 != -1) {
+				int index2 = body.indexOf(str2, index1);
+				if (index2 != -1) {
+					String str3 = body.substring(0, index1) + body.substring(index2 + str2.length());
+					body = str3;
+				} else {
+					return body;
+				}
+			} else {
+				return body;
+			}
+		}
+	}
+
+	/**
+	 * 根据分隔符拆分字符串，取各自单词的首字母组成小写的词
+	 * 比如：sys_user == su
+	 */
+	public static String lowerFirstFromSeparator(String str, String separator) {
+		if (isNotBlank(str) && isNotBlank(separator)) {
+			List<String> split = split(str, separator);
+			StringBuilder stringBuilder = new StringBuilder();
+
+			for (String temp : split) {
+				stringBuilder.append(Character.toLowerCase(temp.charAt(0)));
+			}
+
+			return stringBuilder.toString();
+		}
+		return null;
 	}
 
 	//=====================================其他包  end=====================================

@@ -1,0 +1,31 @@
+package ${javaRootPackage}.mapper.ext;
+
+import ${javaRootPackage}.config.CustomBaseMapper;
+import ${javaRootPackage}.pojo.bo.mapper.bases.BatchDeleteMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.bases.BatchUpdateStateMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.bases.BaseQueryMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.bases.IdListMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.bases.IdMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.bases.ParentIdMapperBO;
+import ${javaRootPackage}.pojo.bo.mapper.${classname}.${ClassName}PageQueryMapperBO;
+import ${javaRootPackage}.pojo.entity.${ClassName};
+import org.springframework.stereotype.Component;
+import java.util.List;
+import org.apache.ibatis.annotations.Param;
+
+@Component
+public interface ${ClassName}MapperExt {
+
+	// =====================================查询业务 start=====================================
+
+	List<${ClassName}> selectByPageQueryMapperBoExt(${ClassName}PageQueryMapperBO mapperBO);
+
+	// =====================================查询业务 end=====================================
+	// =====================================操作业务 start=====================================
+
+
+
+
+	// =====================================操作业务 end=====================================
+
+}

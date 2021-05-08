@@ -1,0 +1,1290 @@
+import React, { Component } from 'react';
+import {
+  Card,
+  Row,
+  Col,
+  Form,
+  Button,
+  Menu,
+  Icon,
+  Dropdown,
+  message,
+  Modal,
+  Spin,
+  Divider,
+  Popconfirm,
+  Switch,
+} from 'antd';
+import get from 'lodash/get';
+import { handleDate } from '@/utils/columnsHandle';
+import { deleteNullValue, formatDateTimeStamp, mergeLoading, getEnumValueList } from '@/utils/utils';
+import SearchForm from '@/components/HehSearch';
+import HehTable from '@/components/HehTable';
+import { connect } from 'dva';
+import { FormComponentProps } from 'antd/lib/form/Form';
+import HehForm from '@/components/HehForm';
+
+import {
+  pageApiTo${ClassNameByOne},
+  createApiTo${ClassNameByOne},
+  updateApiTo${ClassNameByOne},
+  detailApiTo${ClassNameByOne},
+  deleteApiTo${ClassNameByOne},
+  cacheEvictApiTo${ClassNameByOne},
+#if($isIncludeStateEnumByOne)
+  updateStateApiTo${ClassNameByOne},
+#end
+  detailApiReducerTo${ClassNameByOne},
+} from '@/models/${ClassNameByOne}Model';
+
+import {
+  pageApiTo${ClassNameByMany},
+  createApiTo${ClassNameByMany},
+  updateApiTo${ClassNameByMany},
+  detailApiTo${ClassNameByMany},
+  deleteApiTo${ClassNameByMany},
+  cacheEvictApiTo${ClassNameByMany},
+#if($isIncludeStateEnumByMany)
+  updateStateApiTo${ClassNameByMany},
+#end
+  detailApiReducerTo${ClassNameByMany},
+} from '@/models/${ClassNameByMany}Model';
+
+class Index extends Component<any, any> {
+  constructor(props: any) {
+    super(props);
+    this.state = {
+      selectedRowKeysToLeft: [],
+      selectedRowKeysToRight: [],
+      detailModalVisibleToLeft: false,
+      detailModalVisibleToRight: false,
+    };
+  }
+
+  //=====================================生命周期 start=====================================
+
+  componentDidMount() {
+    this.pageApiDispatchToLeft();
+  }
+
+  componentWillUnmount() {
+
+  }
+
+  render() {
+    return (
+      <div>
+        <div style={{ margin: 20 }}>
+          <Row gutter={20}>
+            {/* 两边宽度加起来一定 24*/}
+            <Col span={10}>
+              <Card>
+                {this.renderDetailModalToLeft()}
+                {this.renderSearchFormToLeft()}
+                {this.renderTableToLeft()}
+              </Card>
+            </Col>
+            {/* 两边宽度加起来一定 24*/}
+            <Col span={14}>
+              <Card>
+                {this.renderDetailModalToRight()}
+                {this.renderSearchFormToRight()}
+                {this.renderTableToRight()}
+              </Card>
+            </Col>
+          </Row>
+        </div>
+      </div>
+    );
+  }
+
+  //=====================================生命周期  end=====================================
+  //=====================================函数式组件 start==================================
+
+  renderTableToLeft = () => {
+    const columns = [
+#foreach ($column in $frontendPageColumnsByOne)
+#if($column.lowerAttrName.toString().contains("Enum"))
+      { title: '${column.shortComment}', dataIndex: '${column.lowerAttrName}String', align: 'center' },
+#elseif($column.lowerAttrName.toString().contains("Date"))
+      { title: '${column.shortComment}', dataIndex: '${column.lowerAttrName}', align: 'center', width: 170, hehRender: (text: number) => handleDate(text) },
+#else
+      { title: '${column.shortComment}', dataIndex: '${column.lowerAttrName}', align: 'center' },
+#end
+#end
+#if($isIncludeRankingByOne)
+      { title: '排序', dataIndex: 'ranking', align: 'center', width: 50 },
+#end
+#if($isIncludeStateEnumByOne)
+      {
+        title: '状态', dataIndex: 'stateEnum', align: 'center', width: 90, hehRender: (text: string | number, record: any) => (
+          <Popconfirm
+            title="确认改变状态?"
+            onConfirm={() => this.updateStateApiDispatchToLeft([record.id], text === 1 ? 2 : 1)}
+            okText="确认"
+            cancelText="取消"
+          >
+            <Switch
+              checkedChildren="启用"
+              unCheckedChildren="禁用"
+              checked={text === 1}
+            />
+          </Popconfirm>
+        ),
+      },
+#end
+#if($isIncludeCreateDateByOne)
+      // { title: '创建人', dataIndex: 'createUsername', align: 'center', width: 100 },
+      { title: '创建时间', dataIndex: 'createDate', align: 'center', hehRender: (text: number) => handleDate(text) },
+#end
+#if($isIncludeUpdateDateByOne)
+      // { title: '更新人', dataIndex: 'updateUsername', align: 'center', width: 100 },
+      // { title: '更新时间', dataIndex: 'updateDate', align: 'center', width: 170, hehRender: (text: number) => handleDate(text) },
+#end
+      {
+        title: '操作', width: 180, dataIndex: 'operation', align: 'center', hehRender: (text: any, record: any) => (
+          <span>
+            <a onClick={() => this.detailApiDispatchToLeft(record)}><Icon type='edit'/>编辑</a>
+            <Divider type='vertical'/>
+            <a onClick={() => this.detailApiDispatchToLeft(record, true)}><Icon type='search'/>详情</a>
+            <Divider type='vertical'/>
+            <Popconfirm
+              title="确认删除该条数据?"
+              okText="确定"
+              okType='danger'
+              onConfirm={() => this.deleteApiDispatchToLeft([record.id])}
+              cancelText="取消"
+            >
+              <a><Icon type="delete"/>删除</a>
+            </Popconfirm>
+          </span>
+        ),
+      },
+    ];
+
+
+    const {
+      pageValueToLeft,
+      pageLoadingToLeft,
+      deleteLoading,
+#if($isIncludeStateEnumByOne)
+      updateStateLoading,
+#end
+    } = this.props;
+
+    return (
+      <>
+        <div style={{ marginBottom: 5 }}>
+          <Popconfirm
+            title="确认刷新缓存?"
+            onConfirm={this.cacheEvictApiDispatchToLeft}
+            okText="确认"
+            cancelText="取消"
+          >
+            <Button type='primary' style={{ marginRight: 5 }}>
+              <Icon type='reload'/>刷新缓存
+            </Button>
+          </Popconfirm>
+          <Button
+            onClick={() => this.setState({ detailModalVisibleToLeft: true })}
+            style={{ width: 100 }}
+            type='primary'
+          >
+            <Icon type='plus'/>新建
+          </Button>
+          <Dropdown
+            disabled={this.state.selectedRowKeysToLeft.length === 0}
+            overlay={(
+              <Menu>
+                <Menu.Item>
+                  <Popconfirm
+                    title="确定执行批量删除操作?"
+                    onConfirm={() => this.deleteApiDispatchToLeft(this.state.selectedRowKeysToLeft)}
+                    okText="确定"
+                    cancelText="取消"
+                  >
+                    <Button>
+                      <Icon type='delete'/> 批量删除
+                    </Button>
+                  </Popconfirm>
+                </Menu.Item>
+#if($isIncludeStateEnumByOne)
+                <Menu.Item>
+                  <Button onClick={() => this.updateStateApiDispatchToLeft(this.state.selectedRowKeysToLeft, 1)}>
+                    <Icon type="check-circle"/> 批量启用
+                  </Button>
+                </Menu.Item>
+                <Menu.Item>
+                  <Button onClick={() => this.updateStateApiDispatchToLeft(this.state.selectedRowKeysToLeft, 2)}>
+                    <Icon type="close-circle"/> 批量禁用
+                  </Button>
+                </Menu.Item>
+#end
+              </Menu>
+            )}
+          >
+            <Button style={{ marginLeft: 5 }}>
+              批量操作 <Icon type="down"/>
+            </Button>
+          </Dropdown>
+        </div>
+        <HehTable
+          columns={columns}
+          getSelectedRowKeys={(keys: any) => {
+            this.setState({ selectedRowKeysToLeft: keys });
+          }}
+          selectedRowKeys={this.state.selectedRowKeysToLeft}
+          data={pageValueToLeft && pageValueToLeft.data || []}
+          tableOptions={{
+            loading: mergeLoading(
+              pageLoadingToLeft,
+              deleteLoading,
+#if($isIncludeStateEnumByOne)
+              updateStateLoading,
+#end
+            ),
+            onRow: (record: any) => {
+              return {
+                onClick: (event: any) => {
+                  event.preventDefault();
+                  this.setState({
+                    ${oneToManyKey}: record.id,
+                  }, () => {
+                    this.pageApiDispatchToRight(1, 10);
+                  });
+                },
+              };
+            },
+            rowClassName: (record: any) => {
+              return record.id === this.state.${oneToManyKey} ? 'row-active' : '';
+            },
+          }}
+
+          selectType='checkbox'
+          pageChange={(pageNum, pageSize) => {
+            this.pageApiDispatchToLeft(pageNum, pageSize);
+          }}
+        />
+      </>
+    );
+  };
+
+  renderSearchFormToLeft = () => {
+    const searchItems = [
+#foreach ($column in $frontendSearchFormInputColumnsByOne)
+#if($column.lowerAttrName.toString().contains("Date"))
+      {
+        type: 'rangePicker',
+        label: '${column.shortComment}',
+        id: '${column.lowerAttrName}',
+        attribute: {
+          allowClear: true,
+        },
+      },
+#else
+      {
+        type: 'input',
+        label: '${column.shortComment}',
+        id: '${column.lowerAttrName}',
+        attribute: {
+          placeholder: '请输入${column.shortComment}',
+        },
+      },
+#end
+#end
+#if($isIncludeStateEnumByOne)
+      {
+        type: 'select',
+        label: '状态',
+        id: 'stateEnum',
+        options: getEnumValueList('stateEnum'),
+        attribute: {
+          allowClear: true,
+          placeholder: '请选择',
+        },
+        optionAttribute: {
+          value: 'value',
+          label: 'label',
+        },
+      },
+#end
+
+#foreach ($column in $frontendPageNotBoolEnumColumnsByOne)
+      {
+        type: 'select',
+        label: '${column.shortComment}',
+        id: '${column.lowerAttrName}',
+        options: getEnumValueList('${column.lowerAttrName}'),
+        attribute: {
+          allowClear: true,
+          placeholder: '请选择',
+        },
+        optionAttribute: {
+          value: 'value',
+          label: 'label',
+        },
+      },
+#end
+
+#foreach ($column in $frontendPageBoolEnumColumnsByOne)
+      {
+        type: 'select',
+        label: '${column.shortComment}',
+        id: '${column.lowerAttrName}',
+        options: getEnumValueList('booleanEnum'),
+        attribute: {
+          allowClear: true,
+          placeholder: '请选择',
+        },
+        optionAttribute: {
+          value: 'value',
+          label: 'label',
+        },
+      },
+#end
+
+#if($isIncludeCreateDateByOne)
+      {
+        type: 'rangePicker',
+        label: '创建时间',
+        id: 'createDate',
+        attribute: {
+          allowClear: true,
+        },
+      },
+#end
+
+#if($isIncludeUpdateDateByOne)
+      {
+        type: 'rangePicker',
+        label: '更新时间',
+        id: 'updateDate',
+        attribute: {
+          allowClear: true,
+        },
+      },
+#end
+
+    ];
+    return (
+      <SearchForm
+        searchItems={searchItems}
+        getValue={this.getSearchFormValueToLeft}
+      />
+    );
+  };
+
+  renderDetailModalToLeft = () => {
+    const { detailValueToLeft, form, createLoadingToLeft, updateLoadingToLeft } = this.props;
+
+    const newFormItem = [
+#foreach ($column in $frontendNewModalColumnsByOne)
+#if($column.boolIsNullable == false)
+      {
+        type: 'input',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        defaultValue: get(detailValueToLeft, '${column.lowerAttrName}'),
+        attribute: {
+#if($column.attrType == "String")
+          maxLength: ${column.characterMaximumLength},
+#end
+#if($column.maxValue)
+          maxLength: ${column.maxValue},
+#end
+          disabled: this.state.detail,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '${column.shortComment}为必填项' },
+          ],
+        },
+      },
+#end
+#end
+
+#foreach ($column in $frontendNewModalColumnsByOne)
+#if($column.boolIsNullable == true)
+      { type: 'input', id: '${column.lowerAttrName}', label: '${column.shortComment}', defaultValue: get(detailValueToLeft, '${column.lowerAttrName}'), attribute: { disabled: this.state.detail } },
+#end
+#end
+
+#if($isIncludeRankingByOne)
+      {
+        type: 'inputNumber',
+        id: 'ranking',
+        label: '排序',
+        defaultValue: get(detailValueToLeft, 'ranking') || 100,
+        attribute: {
+          disabled: this.state.detail,
+          max: 100,
+          min: 1,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '排序为必填项' },
+            {
+              validator: (rule: any, value: any, callback: any) => {
+                if (value < 1 || value > 100) {
+                  callback('值为1-100正整数，排序值越小排越前面！');
+                }
+                callback();
+              },
+            },
+          ],
+        },
+      },
+#end
+
+#foreach ($column in $frontendPageNotBoolEnumColumnsByOne)
+#if($column.boolIsNullable == false)
+      {
+        type: 'select',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        defaultValue: get(detailValueToLeft, '${column.lowerAttrName}'),
+        options: getEnumValueList('${column.lowerAttrName}'),
+        attribute: {
+          disabled: this.state.detail,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '${column.shortComment}为必填项' },
+          ],
+        },
+      },
+#end
+#if($column.boolIsNullable == true)
+      {
+        type: 'select',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        defaultValue: get(detailValueToLeft, '${column.lowerAttrName}'),
+        options: getEnumValueList('${column.lowerAttrName}'),
+        attribute: {
+          disabled: this.state.detail,
+        },
+      },
+#end
+#end
+
+#foreach ($column in $frontendPageBoolEnumColumnsByOne)
+      {
+        type: 'radio',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        options: getEnumValueList('booleanEnum'),
+        defaultValue: get(detailValueToLeft, '${column.lowerAttrName}'),
+        attribute: {
+          disabled: this.state.detail,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '${column.shortComment}为必填项' },
+          ],
+        },
+      },
+#end
+
+#if($isIncludeStateEnumByOne)
+      {
+        type: 'radio',
+        id: 'stateEnum',
+        label: '状态',
+        options: getEnumValueList('stateEnum'),
+        defaultValue: get(detailValueToLeft, 'stateEnum'),
+        attribute: {
+          disabled: this.state.detail,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '状态为必填项' },
+          ],
+        },
+      },
+#end
+
+#if($isIncludeDescriptionByOne)
+      { type: 'textarea', id: 'description', label: '描述', defaultValue: get(detailValueToLeft, 'description'), attribute: { disabled: this.state.detail } },
+#end
+
+    ];
+
+    return (
+      <Modal
+        afterClose={() => {
+          this.setState({
+            detail: false,
+          });
+          this.props.dispatch({
+            type: detailApiReducerTo${ClassNameByOne},
+            payload: undefined,
+          });
+        }}
+        destroyOnClose={true}
+        title={(() => {
+          if (detailValueToLeft && this.state.detail) {
+            return <span>详情</span>;
+          }
+          if (detailValueToLeft) {
+            return <span>编辑</span>;
+          }
+          return <span>新建</span>;
+        })()}
+        visible={this.state.detailModalVisibleToLeft}
+        okButtonProps={{ loading: mergeLoading(createLoadingToLeft, updateLoadingToLeft) }}
+        onOk={this.detailSubmitEventToLeft}
+        centered={true}
+        width={1024}
+        onCancel={() => this.setState({ detailModalVisibleToLeft: false })}
+        footer={!this.state.detail && (
+          <div>
+            <Button onClick={() => this.setState({ detailModalVisibleToLeft: false })}>取消</Button>
+            <Button loading={mergeLoading(createLoadingToLeft, updateLoadingToLeft)} type='primary' onClick={this.detailSubmitEventToLeft}>确定</Button>
+          </div>
+        )}
+      >
+        <Spin spinning={this.props.detailLoadingToLeft || false}>
+          <HehForm
+            rowCols={2}
+            form={form}
+            formItems={newFormItem}
+          />
+        </Spin>
+      </Modal>
+    );
+  };
+
+  renderTableToRight = () => {
+    const columns = [
+#foreach ($column in $frontendPageColumnsByMany)
+#if($column.lowerAttrName.toString().contains("Enum"))
+      { title: '${column.shortComment}', dataIndex: '${column.lowerAttrName}String', align: 'center' },
+#elseif($column.lowerAttrName.toString().contains("Date"))
+      { title: '${column.shortComment}', dataIndex: '${column.lowerAttrName}', align: 'center', width: 170, hehRender: (text: number) => handleDate(text) },
+#else
+      { title: '${column.shortComment}', dataIndex: '${column.lowerAttrName}', align: 'center' },
+#end
+#end
+#if($isIncludeRankingByMany)
+      { title: '排序', dataIndex: 'ranking', align: 'center', width: 50 },
+#end
+#if($isIncludeStateEnumByMany)
+      {
+        title: '状态', dataIndex: 'stateEnum', align: 'center', width: 90, hehRender: (text: string | number, record: any) => (
+          <Popconfirm
+            title="确认改变状态?"
+            onConfirm={() => this.updateStateApiDispatchToRight([record.id], text === 1 ? 2 : 1)}
+            okText="确认"
+            cancelText="取消"
+          >
+            <Switch
+              checkedChildren="启用"
+              unCheckedChildren="禁用"
+              checked={text === 1}
+            />
+          </Popconfirm>
+        ),
+      },
+#end
+#if($isIncludeCreateDateByMany)
+      // { title: '创建人', dataIndex: 'createUsername', align: 'center', width: 100 },
+      { title: '创建时间', dataIndex: 'createDate', align: 'center', hehRender: (text: number) => handleDate(text) },
+#end
+#if($isIncludeUpdateDateByMany)
+      // { title: '更新人', dataIndex: 'updateUsername', align: 'center', width: 100 },
+      // { title: '更新时间', dataIndex: 'updateDate', align: 'center', width: 170, hehRender: (text: number) => handleDate(text) },
+#end
+      {
+        title: '操作', width: 180, dataIndex: 'operation', align: 'center', hehRender: (text: any, record: any) => (
+          <span>
+            <a onClick={() => this.detailApiDispatchToRight(record)}><Icon type='edit'/>编辑</a>
+            <Divider type='vertical'/>
+            <a onClick={() => this.detailApiDispatchToRight(record, true)}><Icon type='search'/>详情</a>
+            <Divider type='vertical'/>
+            <Popconfirm
+              title="确认删除该条数据?"
+              okText="确定"
+              okType='danger'
+              onConfirm={() => this.deleteApiDispatchToRight([record.id])}
+              cancelText="取消"
+            >
+              <a><Icon type="delete"/>删除</a>
+            </Popconfirm>
+          </span>
+        ),
+      },
+    ];
+
+    const {
+      pageLoadingToRight,
+      pageValueToRight,
+      deleteLoading,
+#if($isIncludeStateEnumByMany)
+      updateStateLoading,
+#end
+    } = this.props;
+    return (
+      <>
+        <div style={{ marginBottom: 5 }}>
+          <Popconfirm
+            title="确认刷新缓存?"
+            onConfirm={this.cacheEvictApiDispatchToRight}
+            okText="确认"
+            cancelText="取消"
+          >
+            <Button
+              type='primary'
+              disabled={!this.state.${oneToManyKey}}
+              style={{ marginRight: 5 }}
+            >
+              <Icon type='reload'/>刷新缓存
+            </Button>
+          </Popconfirm>
+          <Button
+            onClick={() => this.setState({ detailModalVisibleToRight: true })}
+            style={{ width: 100 }}
+            disabled={!this.state.${oneToManyKey}}
+            type='primary'
+          >
+            <Icon type='plus'/>新建
+          </Button>
+          <Dropdown
+            disabled={this.state.selectedRowKeysToRight.length === 0}
+            overlay={(
+              <Menu>
+                <Menu.Item>
+                  <Button onClick={() => this.deleteApiDispatchToRight(this.state.selectedRowKeysToRight)}>
+                    <Icon type="delete"/> 批量删除
+                  </Button>
+                </Menu.Item>
+                <Menu.Item>
+                  <Button onClick={() => this.updateStateApiDispatchToRight(this.state.selectedRowKeysToRight, 1)}>
+                    <Icon type="check-circle"/> 批量启用
+                  </Button>
+                </Menu.Item>
+                <Menu.Item>
+                  <Button onClick={() => this.updateStateApiDispatchToRight(this.state.selectedRowKeysToRight, 2)}>
+                    <Icon type="close-circle"/> 批量禁用
+                  </Button>
+                </Menu.Item>
+              </Menu>
+            )}
+          >
+            <Button style={{ marginLeft: 5 }}>
+              批量操作 <Icon type="down"/>
+            </Button>
+          </Dropdown>
+        </div>
+        <HehTable
+          columns={columns}
+          getSelectedRowKeys={(keys: any) => {
+            this.setState({ selectedRowKeysToRight: keys });
+          }}
+          selectedRowKeys={this.state.selectedRowKeysToRight}
+          data={pageValueToRight && pageValueToRight.data || []}
+          tableOptions={{
+            loading: mergeLoading(
+              pageLoadingToRight,
+              deleteLoading,
+              updateStateLoading,
+            ),
+          }}
+          pageChange={(pageNum, pageSize) => {
+            this.pageApiDispatchToRight(pageNum, pageSize);
+          }}
+          selectType='checkbox'
+        />
+      </>
+    );
+  };
+
+  renderSearchFormToRight = () => {
+    const searchItems = [
+#foreach ($column in $frontendSearchFormInputColumnsByMany)
+#if($column.lowerAttrName.toString().contains("Date"))
+      {
+        type: 'rangePicker',
+        label: '${column.shortComment}',
+        id: '${column.lowerAttrName}',
+        attribute: {
+          allowClear: true,
+        },
+      },
+#else
+      {
+        type: 'input',
+        label: '${column.shortComment}',
+        id: '${column.lowerAttrName}',
+        attribute: {
+          placeholder: '请输入${column.shortComment}',
+        },
+      },
+#end
+#end
+#if($isIncludeStateEnumByMany)
+      {
+        type: 'select',
+        label: '状态',
+        id: 'stateEnum',
+        options: getEnumValueList('stateEnum'),
+        attribute: {
+          allowClear: true,
+          placeholder: '请选择',
+        },
+        optionAttribute: {
+          value: 'value',
+          label: 'label',
+        },
+      },
+#end
+
+#foreach ($column in $frontendPageNotBoolEnumColumnsByMany)
+      {
+        type: 'select',
+        label: '${column.shortComment}',
+        id: '${column.lowerAttrName}',
+        options: getEnumValueList('${column.lowerAttrName}'),
+        attribute: {
+          allowClear: true,
+          placeholder: '请选择',
+        },
+        optionAttribute: {
+          value: 'value',
+          label: 'label',
+        },
+      },
+#end
+
+#foreach ($column in $frontendPageBoolEnumColumnsByMany)
+      {
+        type: 'select',
+        label: '${column.shortComment}',
+        id: '${column.lowerAttrName}',
+        options: getEnumValueList('booleanEnum'),
+        attribute: {
+          allowClear: true,
+          placeholder: '请选择',
+        },
+        optionAttribute: {
+          value: 'value',
+          label: 'label',
+        },
+      },
+#end
+
+#if($isIncludeCreateDateByMany)
+      {
+        type: 'rangePicker',
+        label: '创建时间',
+        id: 'createDate',
+        attribute: {
+          allowClear: true,
+        },
+      },
+#end
+
+#if($isIncludeUpdateDateByMany)
+      {
+        type: 'rangePicker',
+        label: '更新时间',
+        id: 'updateDate',
+        attribute: {
+          allowClear: true,
+        },
+      },
+#end
+
+    ];
+    return (
+      <SearchForm
+        searchItems={searchItems}
+        getValue={this.getSearchFormValueToRight}
+      />
+    );
+  };
+
+  renderDetailModalToRight = () => {
+    const { detailValueToRight, form, createLoadingToRight, updateLoadingToRight } = this.props;
+
+    const newFormItem = [
+#foreach ($column in $frontendNewModalColumnsByMany)
+#if($column.boolIsNullable == false)
+      {
+        type: 'input',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        defaultValue: get(detailValueToRight, '${column.lowerAttrName}'),
+        attribute: {
+#if($column.attrType == "String")
+          maxLength: ${column.characterMaximumLength},
+#end
+#if($column.maxValue)
+          maxLength: ${column.maxValue},
+#end
+          disabled: this.state.detail,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '${column.shortComment}为必填项' },
+          ],
+        },
+      },
+#end
+#end
+
+#foreach ($column in $frontendNewModalColumnsByMany)
+#if($column.boolIsNullable == true)
+      { type: 'input', id: '${column.lowerAttrName}', label: '${column.shortComment}', defaultValue: get(detailValueToRight, '${column.lowerAttrName}'), attribute: { disabled: this.state.detail } },
+#end
+#end
+
+#if($isIncludeRankingByMany)
+      {
+        type: 'inputNumber',
+        id: 'ranking',
+        label: '排序',
+        defaultValue: get(detailValueToRight, 'ranking') || 100,
+        attribute: {
+          disabled: this.state.detail,
+          max: 100,
+          min: 1,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '排序为必填项' },
+            {
+              validator: (rule: any, value: any, callback: any) => {
+                if (value < 1 || value > 100) {
+                  callback('值为1-100正整数，排序值越小排越前面！');
+                }
+                callback();
+              },
+            },
+          ],
+        },
+      },
+#end
+
+#foreach ($column in $frontendPageNotBoolEnumColumnsByMany)
+#if($column.boolIsNullable == false)
+      {
+        type: 'select',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        defaultValue: get(detailValueToRight, '${column.lowerAttrName}'),
+        options: getEnumValueList('${column.lowerAttrName}'),
+        attribute: {
+          disabled: this.state.detail,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '${column.shortComment}为必填项' },
+          ],
+        },
+      },
+#end
+#if($column.boolIsNullable == true)
+      {
+        type: 'select',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        defaultValue: get(detailValueToRight, '${column.lowerAttrName}'),
+        options: getEnumValueList('${column.lowerAttrName}'),
+        attribute: {
+          disabled: this.state.detail,
+        },
+      },
+#end
+#end
+
+#foreach ($column in $frontendPageBoolEnumColumnsByMany)
+      {
+        type: 'radio',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        options: getEnumValueList('booleanEnum'),
+        defaultValue: get(detailValueToRight, '${column.lowerAttrName}'),
+        attribute: {
+          disabled: this.state.detail,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '${column.shortComment}为必填项' },
+          ],
+        },
+      },
+#end
+
+#if($isIncludeStateEnumByMany)
+      {
+        type: 'radio',
+        id: 'stateEnum',
+        label: '状态',
+        options: getEnumValueList('stateEnum'),
+        defaultValue: get(detailValueToRight, 'stateEnum'),
+        attribute: {
+          disabled: this.state.detail,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '状态为必填项' },
+          ],
+        },
+      },
+#end
+
+#if($isIncludeDescriptionByMany)
+      { type: 'textarea', id: 'description', label: '描述', defaultValue: get(detailValueToRight, 'description'), attribute: { disabled: this.state.detail } },
+#end
+
+    ];
+
+    return (
+      <Modal
+        afterClose={() => {
+          this.setState({
+            detail: false,
+          });
+          this.props.dispatch({
+            type: detailApiReducerTo${ClassNameByMany},
+            payload: undefined,
+          });
+        }}
+        destroyOnClose={true}
+        title={(() => {
+          if (detailValueToRight && this.state.detail) {
+            return <span>详情</span>;
+          }
+          if (detailValueToRight) {
+            return <span>编辑</span>;
+          }
+          return <span>新建</span>;
+        })()}
+        visible={this.state.detailModalVisibleToRight}
+        okButtonProps={{ loading: mergeLoading(createLoadingToRight, updateLoadingToRight) }}
+        onOk={this.detailSubmitEventToRight}
+        centered={true}
+        width={1024}
+        onCancel={() => this.setState({ detailModalVisibleToRight: false })}
+        footer={!this.state.detail && (
+          <div>
+            <Button onClick={() => this.setState({ detailModalVisibleToRight: false })}>取消</Button>
+            <Button loading={mergeLoading(createLoadingToRight, updateLoadingToRight)} type='primary' onClick={this.detailSubmitEventToRight}>确定</Button>
+          </div>
+        )}
+      >
+        <Spin spinning={this.props.detailLoadingToRight || false}>
+          <HehForm
+            rowCols={2}
+            form={form}
+            formItems={newFormItem}
+          />
+        </Spin>
+      </Modal>
+    );
+  };
+
+  //=====================================函数式组件 end====================================
+
+  //=====================================组件工具方法 start==================================
+  getSearchFormValueToLeft = (values: any) => {
+#if($isIncludeCreateDateByOne)
+    if (values.createDate && values.createDate.length === 2) {
+      values.createDateStartDate = formatDateTimeStamp(values.createDate[0], 'start');
+      values.createDateEndDate = formatDateTimeStamp(values.createDate[1], 'end');
+    }
+    delete values.createDate;
+    if (values.createDate === undefined && this.state.searchValueLeft && this.state.searchValueLeft.createDateEndDate !== undefined) {
+      delete this.state.searchValueLeft.createDateEndDate;
+      delete this.state.searchValueLeft.createDateStartDate;
+    }
+#end
+
+#foreach ($column in $frontendPageColumnsByOne)
+#if($column.lowerAttrName.toString().contains("Date"))
+    if (values.${column.lowerAttrName} && values.${column.lowerAttrName}.length === 2) {
+      values.${column.lowerAttrName}StartDate = formatDateTimeStamp(values.${column.lowerAttrName}[0], 'start');
+      values.${column.lowerAttrName}EndDate = formatDateTimeStamp(values.${column.lowerAttrName}[1], 'end');
+    }
+    delete values.${column.lowerAttrName};
+    if (values.${column.lowerAttrName} === undefined && this.state.searchValueLeft && this.state.searchValueLeft.${column.lowerAttrName}EndDate !== undefined) {
+      delete this.state.searchValueLeft.${column.lowerAttrName}StartDate;
+      delete this.state.searchValueLeft.${column.lowerAttrName}EndDate;
+    }
+
+#end
+#end
+
+    this.setState({ searchValueLeft: { ...this.state.searchValueLeft, ...values } });
+    this.pageApiDispatchToLeft(1, 10, { ...this.state.searchValueLeft, ...values });
+  };
+
+  getSearchFormValueToRight = (values: any) => {
+#if($isIncludeCreateDateByMany)
+    if (values.createDate && values.createDate.length === 2) {
+      values.createDateStartDate = formatDateTimeStamp(values.createDate[0], 'start');
+      values.createDateEndDate = formatDateTimeStamp(values.createDate[1], 'end');
+    }
+    delete values.createDate;
+    if (values.createDate === undefined && this.state.searchValueRight && this.state.searchValueRight.createDateEndDate !== undefined) {
+      delete this.state.searchValueRight.createDateEndDate;
+      delete this.state.searchValueRight.createDateStartDate;
+    }
+#end
+
+#foreach ($column in $frontendPageColumnsByMany)
+#if($column.lowerAttrName.toString().contains("Date"))
+    if (values.${column.lowerAttrName} && values.${column.lowerAttrName}.length === 2) {
+      values.${column.lowerAttrName}StartDate = formatDateTimeStamp(values.${column.lowerAttrName}[0], 'start');
+      values.${column.lowerAttrName}EndDate = formatDateTimeStamp(values.${column.lowerAttrName}[1], 'end');
+    }
+    delete values.${column.lowerAttrName};
+    if (values.${column.lowerAttrName} === undefined && this.state.searchValueLeft && this.state.searchValueLeft.${column.lowerAttrName}EndDate !== undefined) {
+      delete this.state.searchValueLeft.${column.lowerAttrName}StartDate;
+      delete this.state.searchValueLeft.${column.lowerAttrName}EndDate;
+    }
+
+#end
+#end
+
+    this.setState({ searchValueRight: { ...this.state.searchValueRight, ...values } });
+    this.pageApiDispatchToRight(1, 10, { ...this.state.searchValueRight, ...values });
+  };
+
+  //=====================================组件工具方法 end====================================
+
+  //=====================================带请求方法 start=====================================
+  updateApiDispatchToLeft = (values: any) => {
+    this.props.dispatch({
+      type: updateApiTo${ClassNameByOne},
+      payload: values,
+    }).then((res: any) => {
+      if (res && res.isSuccess) {
+        message.success(res.msg);
+        this.pageApiDispatchToLeft();
+        this.setState({ detailModalVisibleToLeft: false });
+      }
+    });
+  };
+
+  createApiDispatchToLeft = (values: any) => {
+    this.props.dispatch({
+      type: createApiTo${ClassNameByOne},
+      payload: values,
+    }).then((res: any) => {
+      if (res && res.isSuccess) {
+        message.success(res.msg);
+        this.pageApiDispatchToLeft();
+        this.setState({ detailModalVisibleToLeft: false });
+      }
+    });
+  };
+
+  detailSubmitEventToLeft = () => {
+    const { detailValueToLeft } = this.props;
+    this.props.form.validateFields((err: any, values: any) => {
+      if (err) return;
+      if (detailValueToLeft) {
+        this.updateApiDispatchToLeft({ ...values, id: detailValueToLeft.id });
+      } else {
+        this.createApiDispatchToLeft(values);
+      }
+    });
+  };
+
+  detailSubmitEventToRight = () => {
+    const { detailValueToRight } = this.props;
+    this.props.form.validateFields((err: any, values: any) => {
+      if (err) return;
+      if (detailValueToRight) {
+        this.updateApiDispatchToRight({
+          ...values,
+          id: detailValueToRight.id,
+          ${oneToManyKey}: this.state.${oneToManyKey},
+        });
+      } else {
+        this.createApiDispatchToRight({
+          ...values,
+          ${oneToManyKey}: this.state.${oneToManyKey},
+        });
+      }
+    });
+  };
+
+  updateApiDispatchToRight = (values: any) => {
+    this.props.dispatch({
+      type: updateApiTo${ClassNameByMany},
+      payload: values,
+    }).then((res: any) => {
+      if (res && res.isSuccess) {
+        message.success(res.msg);
+        this.pageApiDispatchToRight();
+        this.setState({ detailModalVisibleToRight: false });
+      }
+    });
+  };
+
+  createApiDispatchToRight = (values: any) => {
+    this.props.dispatch({
+      type: createApiTo${ClassNameByMany},
+      payload: values,
+    }).then((res: any) => {
+      if (res && res.isSuccess) {
+        message.success(res.msg);
+        this.pageApiDispatchToRight();
+        this.setState({ detailModalVisibleToRight: false });
+      }
+    });
+  };
+
+  pageApiDispatchToLeft = (pageNum = 1, pageSize = 10, values = this.state.searchValueLeft) => {
+    this.props.dispatch(deleteNullValue({
+      type: pageApiTo${ClassNameByOne},
+      payload: {
+        pageNum,
+        pageSize,
+        ...values,
+      },
+    }));
+  };
+
+  pageApiDispatchToRight = (pageNum = 1, pageSize = 10, values = this.state.searchValueRight) => {
+    this.props.dispatch({
+      type: pageApiTo${ClassNameByMany},
+      payload: deleteNullValue({
+        pageNum,
+        pageSize,
+        ${oneToManyKey}: this.state.${oneToManyKey},
+        ...values,
+      }),
+    });
+  };
+
+  detailApiDispatchToLeft = (record: any, detail?: boolean) => {
+    this.props.dispatch({
+      type: detailApiTo${ClassNameByOne},
+      payload: { id: record.id },
+    });
+    this.setState({ detailModalVisibleToLeft: true, detail });
+  };
+
+  detailApiDispatchToRight = (record: any, detail?: boolean) => {
+    this.props.dispatch({
+      type: detailApiTo${ClassNameByMany},
+      payload: { id: record.id },
+    });
+    this.setState({ detailModalVisibleToRight: true, detail });
+  };
+
+  deleteApiDispatchToLeft = (ids: any) => {
+    this.props.dispatch({
+      type: deleteApiTo${ClassNameByOne},
+      payload: { idList: ids },
+    }).then((res: any) => {
+      if (res && res.isSuccess) {
+        message.success(res.msg);
+        this.setState({ selectedRowKeys: [] });
+        this.pageApiDispatchToLeft();
+      }
+    });
+  };
+
+  deleteApiDispatchToRight = (ids: any) => {
+    this.props.dispatch({
+      type: deleteApiTo${ClassNameByMany},
+      payload: { idList: ids },
+    }).then((res: any) => {
+      if (res && res.isSuccess) {
+        message.success(res.msg);
+        this.setState({ selectedRowKeys: [] });
+        this.pageApiDispatchToRight();
+      }
+    });
+  };
+
+  cacheEvictApiDispatchToLeft = () => {
+    this.props.dispatch({
+      type: cacheEvictApiTo${ClassNameByOne},
+    }).then((res: any) => {
+      if (res.isSuccess) {
+        message.success(res.msg);
+        this.pageApiDispatchToLeft();
+      }
+    });
+  };
+
+  cacheEvictApiDispatchToRight = () => {
+    this.props.dispatch({
+      type: cacheEvictApiTo${ClassNameByMany},
+    }).then((res: any) => {
+      if (res.isSuccess) {
+        message.success(res.msg);
+        this.pageApiDispatchToRight();
+      }
+    });
+  };
+
+#if($isIncludeStateEnumByOne)
+  updateStateApiDispatchToLeft = (ids: any, stateEnum: any) => {
+    this.props.dispatch({
+      type: updateStateApiTo${ClassNameByOne},
+      payload: {
+        idList: ids,
+        stateEnum,
+      },
+    }).then((res: any) => {
+      if (res && res.isSuccess) {
+        message.success(res.msg);
+        this.pageApiDispatchToLeft();
+      }
+    });
+  };
+#end
+
+#if($isIncludeStateEnumByMany)
+  updateStateApiDispatchToRight = (ids: any, stateEnum: any) => {
+    this.props.dispatch({
+      type: updateStateApiTo${ClassNameByMany},
+      payload: {
+        idList: ids,
+        stateEnum,
+      },
+    }).then((res: any) => {
+      if (res && res.isSuccess) {
+        message.success(res.msg);
+        this.pageApiDispatchToRight();
+      }
+    });
+  };
+#end
+
+  //=====================================带请求方法 end=====================================
+
+}
+
+export default connect(({ ${ClassNameByOne}Model, ${ClassNameByMany}Model, loading }: any) => ({
+  pageValueToLeft: ${ClassNameByOne}Model.pageValueTo${ClassNameByOne},
+  detailValueToLeft: ${ClassNameByOne}Model.detailValueTo${ClassNameByOne},
+  pageValueToRight: ${ClassNameByMany}Model.pageValueTo${ClassNameByMany},
+  detailValueToRight: ${ClassNameByMany}Model.detailValueTo${ClassNameByMany},
+
+  pageLoadingToLeft: loading.effects[pageApiTo${ClassNameByOne}],
+  pageLoadingToRight: loading.effects[pageApiTo${ClassNameByMany}],
+
+  createLoadingToLeft: loading.effects[createApiTo${ClassNameByOne}],
+  updateLoadingToLeft: loading.effects[updateApiTo${ClassNameByOne}],
+  detailLoadingToLeft: loading.effects[detailApiTo${ClassNameByOne}],
+  deleteLoadingToLeft: loading.effects[deleteApiTo${ClassNameByOne}],
+#if($isIncludeStateEnumByOne)
+  updateStateLoadingToLeft: loading.effects[updateStateApiTo${ClassNameByOne}],
+#end
+  createLoadingToRight: loading.effects[createApiTo${ClassNameByMany}],
+  updateLoadingToRight: loading.effects[updateApiTo${ClassNameByMany}],
+  detailLoadingToRight: loading.effects[detailApiTo${ClassNameByMany}],
+  deleteLoadingToRight: loading.effects[deleteApiTo${ClassNameByMany}],
+#if($isIncludeStateEnumByMany)
+  updateStateLoadingToRight: loading.effects[updateStateApiTo${ClassNameByMany}],
+#end
+
+}))(Form.create<FormComponentProps>()(Index));

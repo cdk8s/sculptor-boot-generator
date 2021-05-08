@@ -1,0 +1,325 @@
+package ${javaRootPackage}.controller.bases;
+
+import ${javaRootPackage}.aop.eventlog.EventLog;
+import ${javaRootPackage}.aop.eventlog.EventLogEnum;
+import ${javaRootPackage}.mapstruct.${ClassName}MapStruct;
+import ${javaRootPackage}.mapstruct.IdAndIdListMapStruct;
+import ${javaRootPackage}.pojo.dto.param.bases.BatchDeleteRequestParam;
+import ${javaRootPackage}.pojo.dto.param.${classname}.*;
+import ${javaRootPackage}.pojo.bo.service.${classname}.*;
+import ${javaRootPackage}.pojo.dto.param.bases.IdRequestParam;
+#if($isIncludeParentId)
+import ${javaRootPackage}.pojo.dto.param.bases.TreeCascadeRequestParam;
+import ${javaRootPackage}.mapstruct.ParentIdAndParentIdListMapStruct;
+import ${javaRootPackage}.pojo.bo.service.bases.ParentIdServiceBO;
+import ${javaRootPackage}.pojo.dto.param.bases.ParentIdRequestParam;
+import ${javaRootPackage}.pojo.bo.service.bases.TreeCascadeServiceBO;
+#end
+import ${javaRootPackage}.pojo.dto.param.bases.BatchUpdateStateRequestParam;
+import ${javaRootPackage}.pojo.dto.param.bases.IdListRequestParam;
+import ${javaRootPackage}.pojo.dto.response.${classname}.${ClassName}ResponseDTO;
+import ${javaRootPackage}.service.${ClassName}Service;
+import ${javaRootPackage}.pojo.entity.${ClassName};
+import ${javaRootPackage}.util.response.biz.R;
+import ${javaRootPackage}.aop.permission.RequestPermission;
+import ${javaRootPackage}.exception.BusinessException;
+import ${javaRootPackage}.strategy.UserInfoContext;
+import ${javaRootPackage}.util.DatetimeUtil;
+import com.github.pagehelper.PageInfo;
+import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import javax.validation.Valid;
+import java.util.List;
+import java.util.ArrayList;
+
+@Slf4j
+public class ${ClassName}ControllerBase {
+
+	@Autowired
+	private ${ClassName}Service ${className}Service;
+
+	@Autowired
+	private ${ClassName}MapStruct ${className}MapStruct;
+
+	@Autowired
+	private IdAndIdListMapStruct idAndIdListMapStruct;
+
+#if($isIncludeParentId)
+	@Autowired
+	private ParentIdAndParentIdListMapStruct parentIdAndParentIdListMapStruct;
+#end
+	// =====================================查询业务 start=====================================
+
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/detail", method = RequestMethod.POST)
+	public ResponseEntity<?> detail(@Valid @RequestBody IdRequestParam param) {
+		${ClassName}ResponseDTO dto = ${className}MapStruct.toResponseDTO(${className}Service.findOneById(idAndIdListMapStruct.requestParamToServiceBO(param)));
+
+		// if (null != dto) {
+
+		// }
+
+		return R.success(dto);
+	}
+
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/listByIdList", method = RequestMethod.POST)
+	public ResponseEntity<?> listByIdList(@Valid @RequestBody IdListRequestParam param) {
+		return R.success(${className}MapStruct.toResponseDTOList(${className}Service.findListByIdList(idAndIdListMapStruct.requestParamToServiceBO(param))));
+	}
+
+#if($isIncludeParentId)
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/listByTreeCascade", method = RequestMethod.POST)
+	public ResponseEntity<?> listByTreeCascade(@Valid @RequestBody TreeCascadeRequestParam param) {
+		TreeCascadeServiceBO serviceBO = parentIdAndParentIdListMapStruct.requestParamToServiceBO(param);
+		return R.success(${className}MapStruct.toResponseDTOList(${className}Service.findListByTreeCascade(serviceBO)));
+	}
+
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/listTreeByParentId", method = RequestMethod.POST)
+	public ResponseEntity<?> listTreeByParentId(@Valid @RequestBody ParentIdRequestParam param) {
+		ParentIdServiceBO serviceBO = parentIdAndParentIdListMapStruct.requestParamToServiceBO(param);
+		return R.success(${className}MapStruct.toResponseDTOList(${className}Service.findTreeListByParentId(serviceBO)));
+	}
+
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/listByParentId", method = RequestMethod.POST)
+	public ResponseEntity<?> listByParentId(@Valid @RequestBody ParentIdRequestParam param) {
+		ParentIdServiceBO serviceBO = parentIdAndParentIdListMapStruct.requestParamToServiceBO(param);
+		return R.success(${className}MapStruct.toResponseDTOList(${className}Service.findListByParentId(serviceBO)));
+	}
+
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/listAndCheckParentByParentId", method = RequestMethod.POST)
+	public ResponseEntity<?> listAndCheckParentByParentId(@Valid @RequestBody ParentIdRequestParam param) {
+		ParentIdServiceBO serviceBO = parentIdAndParentIdListMapStruct.requestParamToServiceBO(param);
+		return R.success(${className}MapStruct.toResponseDTOList(${className}Service.findListAndCheckParentEnumByParentId(serviceBO)));
+	}
+#end
+
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/list", method = RequestMethod.POST)
+	public ResponseEntity<?> list(@Valid @RequestBody ${ClassName}PageQueryParam param) {
+		List<${ClassName}> result = ${className}Service.findListByServiceBO(${className}MapStruct.pageQueryParamToServiceBO(param));
+		return R.success(${className}MapStruct.toResponseDTOList(result));
+	}
+
+#foreach ($column in $oneQueryParamColumns)
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/listBy${column.upperAttrName}", method = RequestMethod.POST)
+	public ResponseEntity<?> listBy${column.upperAttrName}(@Valid @RequestBody ${ClassName}${column.upperAttrName}RequestParam param) {
+		List<${ClassName}> result = ${className}Service.findListBy${column.upperAttrName}(${className}MapStruct.${column.lowerAttrName}RequestParamToServiceBO(param));
+		List<${ClassName}ResponseDTO> dtoList = ${className}MapStruct.toResponseDTOList(result);
+		return R.success(dtoList);
+	}
+
+#end
+
+#foreach ($column in $listQueryParamColumns)
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/listBy${column.upperAttrName}List", method = RequestMethod.POST)
+	public ResponseEntity<?> listBy${column.upperAttrName}List(@Valid @RequestBody ${ClassName}${column.upperAttrName}ListRequestParam param) {
+		List<${ClassName}> result = ${className}Service.findListBy${column.upperAttrName}List(${className}MapStruct.${column.lowerAttrName}ListRequestParamToServiceBO(param));
+		List<${ClassName}ResponseDTO> dtoList = ${className}MapStruct.toResponseDTOList(result);
+		return R.success(dtoList);
+	}
+
+#end
+
+#foreach ($column in $likeParamColumns)
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/listBy${column.upperAttrName}WhereLike", method = RequestMethod.POST)
+	public ResponseEntity<?> listBy${column.upperAttrName}WhereLike(@Valid @RequestBody ${ClassName}${column.upperAttrName}LikeQueryParam param) {
+		if (null == param.get${column.upperAttrName}()) {
+			param.set${column.upperAttrName}("");
+		}
+
+		PageInfo result = ${className}Service.findPageBy${column.upperAttrName}WhereLike(${className}MapStruct.${column.lowerAttrName}LikeQueryParamToServiceBO(param));
+		List<${ClassName}ResponseDTO> list = ${className}MapStruct.toResponseDTOList(result.getList());
+		result.setList(list);
+		return R.success(result);
+	}
+
+#end
+
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}")
+#end
+	@RequestMapping(value = "/page", method = RequestMethod.POST)
+	public ResponseEntity<?> page(@Valid @RequestBody ${ClassName}PageQueryParam param) {
+		PageInfo result = ${className}Service.findPageByServiceBO(${className}MapStruct.pageQueryParamToServiceBO(param));
+		List<${ClassName}ResponseDTO> list = ${className}MapStruct.toResponseDTOList(result.getList());
+
+		// if (CollectionUtil.isNotEmpty(list)) {
+			// for (${ClassName}ResponseDTO dto : list) {
+
+			// }
+		// }
+
+		result.setList(list);
+		return R.success(result);
+	}
+
+	// =====================================查询业务 end=====================================
+	// =====================================操作业务 start=====================================
+
+#if($boolEnableCache && $isRelationTable == false)
+	@RequestPermission("${class_name}")
+	@RequestMapping(value = "/cacheEvict", method = RequestMethod.POST)
+	public ResponseEntity<?> cacheEvict() {
+		if (!UserInfoContext.isTopAdminUser()) {
+			throw new BusinessException("只有顶级管理员才有权限使用该功能");
+		}
+		${className}Service.cacheEvict();
+		return R.success();
+	}
+#end
+
+	@EventLog(message = "创建 ${className} 对象", operateType = EventLogEnum.OPERATE_TYPE_CREATE)
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}_create")
+#end
+	@RequestMapping(value = "/create", method = RequestMethod.POST)
+	public ResponseEntity<?> create(@Valid @RequestBody ${ClassName}CreateRequestParam param) {
+		${className}Service.create(${className}MapStruct.createRequestParamToServiceBO(param));
+		return R.success();
+	}
+
+#if($isRelationTable)
+	@EventLog(message = "批量创建 ${className} 对象", operateType = EventLogEnum.OPERATE_TYPE_CREATE)
+	@RequestMapping(value = "/batchCreate", method = RequestMethod.POST)
+	public ResponseEntity<?> batchCreate(@Valid @RequestBody ${ClassName}BatchCreateRequestParam param) {
+		${className}Service.batchCreate(${className}MapStruct.batchCreateRequestParamToServiceBO(param));
+		return R.success();
+	}
+
+	@EventLog(message = "批量创建 ${className} 对象", operateType = EventLogEnum.OPERATE_TYPE_CREATE)
+	@RequestMapping(value = "/batchCreateBy${foreignKeyFirstColumn.upperAttrName}ListToDelete", method = RequestMethod.POST)
+	public ResponseEntity<?> batchCreateBy${foreignKeyFirstColumn.upperAttrName}ListToDelete(@Valid @RequestBody ${ClassName}BatchCreateRequestParam param) {
+		${className}Service.batchCreateBy${foreignKeyFirstColumn.upperAttrName}ListToDelete(${className}MapStruct.batchCreateRequestParamToServiceBO(param));
+		return R.success();
+	}
+
+	@EventLog(message = "批量创建 ${className} 对象", operateType = EventLogEnum.OPERATE_TYPE_CREATE)
+	@RequestMapping(value = "/batchCreateBy${foreignKeySecondColumn.upperAttrName}ListToDelete", method = RequestMethod.POST)
+	public ResponseEntity<?> batchCreateBy${foreignKeySecondColumn.upperAttrName}ListToDelete(@Valid @RequestBody ${ClassName}BatchCreateRequestParam param) {
+		${className}Service.batchCreateBy${foreignKeySecondColumn.upperAttrName}ListToDelete(${className}MapStruct.batchCreateRequestParamToServiceBO(param));
+		return R.success();
+	}
+#end
+
+	@EventLog(message = "更新 ${className} 对象", operateType = EventLogEnum.OPERATE_TYPE_UPDATE_INFO)
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}_update")
+#end
+	@RequestMapping(value = "/update", method = RequestMethod.POST)
+	public ResponseEntity<?> update(@Valid @RequestBody ${ClassName}UpdateRequestParam param) {
+		${className}Service.update(${className}MapStruct.updateRequestParamToServiceBO(param));
+		return R.success();
+	}
+
+#if($isRelationTable == false)
+	@EventLog(message = "批量创建 ${className} 对象", operateType = EventLogEnum.OPERATE_TYPE_CREATE)
+	@RequestPermission("${class_name}_create")
+	@RequestMapping(value = "/batchCreate", method = RequestMethod.POST)
+	public ResponseEntity<?> batchCreate(@Valid @RequestBody ${ClassName}BatchCreateRequestParam param) {
+		List<${ClassName}CreateRequestParam> paramList = param.getParamList();
+
+		List<${ClassName}CreateServiceBO> serviceBOList = new ArrayList<>();
+		for (${ClassName}CreateRequestParam createParam : paramList) {
+			${ClassName}CreateServiceBO serviceBO = ${className}MapStruct.createRequestParamToServiceBO(createParam);
+			Long currentUserId = UserInfoContext.getCurrentUserId();
+			long currentEpochMilli = DatetimeUtil.currentEpochMilli();
+			serviceBO.setCreateDate(currentEpochMilli);
+			serviceBO.setCreateUserId(currentUserId);
+			serviceBO.setUpdateDate(currentEpochMilli);
+			serviceBO.setUpdateUserId(currentUserId);
+			serviceBO.setTenantId(UserInfoContext.getCurrentUserTenantId());
+			serviceBOList.add(serviceBO);
+		}
+
+		${className}Service.batchCreate(serviceBOList);
+		return R.success();
+	}
+
+	@EventLog(message = "批量更新 ${className} 对象", operateType = EventLogEnum.OPERATE_TYPE_UPDATE_INFO)
+	@RequestPermission("${class_name}_update")
+	@RequestMapping(value = "/batchUpdate", method = RequestMethod.POST)
+	public ResponseEntity<?> batchUpdate(@Valid @RequestBody ${ClassName}BatchUpdateRequestParam param) {
+		List<${ClassName}UpdateRequestParam> paramList = param.getParamList();
+
+		List<${ClassName}UpdateServiceBO> serviceBOList = new ArrayList<>();
+		for (${ClassName}UpdateRequestParam updateParam : paramList) {
+			${ClassName}UpdateServiceBO serviceBO = ${className}MapStruct.updateRequestParamToServiceBO(updateParam);
+			serviceBO.setUpdateDate(DatetimeUtil.currentEpochMilli());
+			serviceBO.setUpdateUserId(UserInfoContext.getCurrentUserId());
+			serviceBO.setTenantId(UserInfoContext.getCurrentUserTenantId());
+			serviceBOList.add(serviceBO);
+		}
+
+		${className}Service.batchUpdate(serviceBOList);
+		return R.success();
+	}
+#end
+
+#if($isIncludeStateEnum)
+	@EventLog(message = "批量更新 ${className} 状态", operateType = EventLogEnum.OPERATE_TYPE_UPDATE_STATE)
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}_update")
+#end
+	@RequestMapping(value = "/batchUpdateState", method = RequestMethod.POST)
+	public ResponseEntity<?> batchUpdateState(@Valid @RequestBody BatchUpdateStateRequestParam param) {
+		${className}Service.batchUpdateState(${className}MapStruct.batchUpdateStateParamToServiceBO(param));
+		return R.success();
+	}
+#end
+
+	@EventLog(message = "批量删除 ${className} 对象", operateType = EventLogEnum.OPERATE_TYPE_DELETE)
+#if($isRelationTable == false)
+	@RequestPermission("${class_name}_delete")
+#end
+	@RequestMapping(value = "/batchDelete", method = RequestMethod.POST)
+	public ResponseEntity<?> batchDelete(@Valid @RequestBody BatchDeleteRequestParam param) {
+		${className}Service.batchDelete(${className}MapStruct.batchDeleteParamToServiceBO(param));
+		return R.success();
+	}
+
+#if($isRelationTable)
+	@EventLog(message = "删除 ${className} 对象", operateType = EventLogEnum.OPERATE_TYPE_DELETE)
+	@RequestMapping(value = "/deleteBy${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}", method = RequestMethod.POST)
+	public ResponseEntity<?> deleteBy${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}(@Valid @RequestBody ${ClassName}${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}ToDeleteRequestParam param) {
+		${className}Service.deleteBy${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}(${className}MapStruct.deleteBy${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}ParamToServiceBO(param));
+		return R.success();
+	}
+#end
+
+	// =====================================操作业务 end=====================================
+	// =====================================私有方法 start=====================================
+
+	// =====================================私有方法 end=====================================
+
+}

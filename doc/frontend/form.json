@@ -1,0 +1,17 @@
+[
+  {
+    "key": "a1",
+    "label": "申请人",
+    "type": "input"
+  },
+  {
+    "key": "a2",
+    "label": "我司签约主体",
+    "type": "select"
+  },
+  {
+    "key": "a3",
+    "label": "预计签约月份",
+    "type": "date"
+  }
+]

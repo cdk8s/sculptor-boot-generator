@@ -1,0 +1,27 @@
+package ${javaRootPackage}.pojo.dto.param.${classname};
+
+import ${javaRootPackage}.pojo.dto.param.bases.BaseDeleteParam;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import javax.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import java.util.List;
+
+
+@Setter
+@Getter
+@ToString(callSuper = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ${ClassName}${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}ToDeleteRequestParam extends BaseDeleteParam {
+
+	private static final long serialVersionUID = -1L;
+
+	@NotNull(message = "${foreignKeyFirstColumn.lowerAttrName} 不能为空")
+	private Long ${foreignKeyFirstColumn.lowerAttrName};
+
+	@NotNull(message = "${foreignKeySecondColumn.lowerAttrName} 不能为空")
+	private Long ${foreignKeySecondColumn.lowerAttrName};
+
+}

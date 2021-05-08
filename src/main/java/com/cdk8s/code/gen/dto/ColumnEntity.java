@@ -1,6 +1,5 @@
 package com.cdk8s.code.gen.dto;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

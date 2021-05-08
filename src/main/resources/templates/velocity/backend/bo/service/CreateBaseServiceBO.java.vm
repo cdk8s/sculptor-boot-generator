@@ -1,0 +1,20 @@
+package ${javaRootPackage}.pojo.bo.service.${classname}.bases;
+
+import lombok.*;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import ${javaRootPackage}.pojo.bo.service.bases.BaseCreateServiceBO;
+
+@Setter
+@Getter
+@NoArgsConstructor
+@ToString(callSuper = true)
+public class ${ClassName}CreateBaseServiceBO extends BaseCreateServiceBO {
+
+	private static final long serialVersionUID = -1L;
+
+#foreach ($column in $createRequestServiceBOColumns)
+	private $column.attrType $column.lowerAttrName;
+#end
+
+}

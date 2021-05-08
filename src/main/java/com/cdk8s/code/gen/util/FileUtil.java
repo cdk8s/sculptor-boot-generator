@@ -6,13 +6,19 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
-import java.nio.charset.Charset;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 文件操作工具类
  */
 @Slf4j
 public final class FileUtil {
+
+	@SneakyThrows
+	public static void writeStringToFile(File file, String content) {
+		FileUtils.writeStringToFile(file, content, StandardCharsets.UTF_8);
+	}
 
 	/**
 	 * 判断文件是否存在
@@ -68,11 +74,27 @@ public final class FileUtil {
 	}
 
 	/**
-	 * 获取真实文件名（自动去掉文件路径）
+	 * 读取文件内容
 	 */
 	@SneakyThrows
 	public static String readFileToString(String filePath) {
-		return FileUtils.readFileToString(new File(filePath), Charset.forName("UTF-8"));
+		return FileUtils.readFileToString(new File(filePath), StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * 读取文件内容，相对于 classpath 下
+	 */
+	@SneakyThrows
+	public static String readFileToStringByClasspath(String resourceLocation) {
+		// 可以获取路径：/Users/youmeek/code_space/gitlab_code/sculptor-boot-backend/sculptor-boot-biz/target/classes/
+		ClassLoader classLoader = FileUtil.class.getClassLoader();
+		URL url = classLoader.getResource(resourceLocation);
+		if (null == url) {
+			return null;
+		}
+		File file = new File(url.getFile());
+
+		return FileUtils.readFileToString(file, StandardCharsets.UTF_8);
 	}
 
 	/**

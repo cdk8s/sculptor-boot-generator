@@ -1,0 +1,169 @@
+
+- 话题新增
+
+```
+/t101c_topic
+```
+
+```
+{
+  "data": null,
+  "isSuccess": true,
+  "msg": "操作成功",
+  "timestamp": "@natural(1510133532000,1564133532000)",
+  "code": 200
+}
+```
+
+-------------------------------------------------------------------
+
+
+- 话题删除
+
+```
+/t102d_topic
+```
+
+```
+{
+  "data": null,
+  "isSuccess": true,
+  "msg": "操作成功",
+  "timestamp": "@natural(1510133532000,1564133532000)",
+  "code": 200
+}
+```
+
+-------------------------------------------------------------------
+
+
+- 话题编辑
+
+```
+/t103e_topic
+```
+
+```
+{
+  "data": null,
+  "isSuccess": true,
+  "msg": "操作成功",
+  "timestamp": "@natural(1510133532000,1564133532000)",
+  "code": 200
+}
+```
+
+-------------------------------------------------------------------
+
+
+- 话题详情
+
+
+```
+/t104v_topic
+```
+
+```
+{
+  "data": {
+#foreach ($column in $easymockResponseDTOColumns)
+#if($column.upperAttrName.toString().contains("EnumString"))
+    "${column.lowerAttrName}": "@ctitle(3)"#if($foreach.hasNext),#end
+#elseif($column.upperAttrName.toString().contains("Date"))
+    "${column.lowerAttrName}": "@natural(1510133532000,1564133532000)"#if($foreach.hasNext),#end
+#elseif($column.upperAttrName.toString().contains("Id"))
+    "${column.lowerAttrName}": "@integer(111111111111111111, 417454619141214208)"#if($foreach.hasNext),#end
+#elseif($column.upperAttrName.toString().contains("Enum") || $column.upperAttrName.toString().contains("Bool"))
+    "${column.lowerAttrName}": "@integer(1, 2)"#if($foreach.hasNext),#end
+#elseif($column.attrType == "String")
+    "${column.lowerAttrName}": "@ctitle(12)"#if($foreach.hasNext),#end
+#elseif($column.attrType == "Integer")
+    "${column.lowerAttrName}": "@integer(10, 99)"#if($foreach.hasNext),#end
+#elseif($column.attrType == "Long")
+    "${column.lowerAttrName}": "@integer(100, 999)"#if($foreach.hasNext),#end
+#elseif($column.attrType == "BigDecimal")
+    "${column.lowerAttrName}": "@float(1, 10, 2, 2)"#if($foreach.hasNext),#end
+#else
+    "${column.lowerAttrName}": "@ctitle(12)"#if($foreach.hasNext),#end
+#end
+
+#end
+  },
+  "isSuccess": true,
+  "msg": "操作成功",
+  "timestamp": "@natural(1510133532000,1564133532000)",
+  "code": 200
+}
+```
+
+-------------------------------------------------------------------
+
+- 话题分页
+
+
+```
+/t105p_topic
+```
+
+```
+{
+  "data": {
+    "list|9-12": [
+        {
+#foreach ($column in $easymockResponseDTOColumns)
+#if($column.upperAttrName.toString().contains("EnumString"))
+          "${column.lowerAttrName}": "@ctitle(3)"#if($foreach.hasNext),#end
+#elseif($column.upperAttrName.toString().contains("Date"))
+          "${column.lowerAttrName}": "@natural(1510133532000,1564133532000)"#if($foreach.hasNext),#end
+#elseif($column.upperAttrName.toString().contains("Id"))
+          "${column.lowerAttrName}": "@integer(111111111111111111, 417454619141214208)"#if($foreach.hasNext),#end
+#elseif($column.upperAttrName.toString().contains("Enum") || $column.upperAttrName.toString().contains("Bool"))
+          "${column.lowerAttrName}": "@integer(1, 2)"#if($foreach.hasNext),#end
+#elseif($column.attrType == "String")
+          "${column.lowerAttrName}": "@ctitle(12)"#if($foreach.hasNext),#end
+#elseif($column.attrType == "Integer")
+          "${column.lowerAttrName}": "@integer(10, 99)"#if($foreach.hasNext),#end
+#elseif($column.attrType == "Long")
+          "${column.lowerAttrName}": "@integer(100, 999)"#if($foreach.hasNext),#end
+#elseif($column.attrType == "BigDecimal")
+          "${column.lowerAttrName}": "@float(1, 10, 2, 2)"#if($foreach.hasNext),#end
+#else
+          "${column.lowerAttrName}": "@ctitle(12)"#if($foreach.hasNext),#end
+#end
+
+#end
+        }
+    ],
+    "total": "@integer(9, 12)",
+    "pageNum": 1,
+    "pageSize": 10,
+    "size": 2,
+    "startRow": 1,
+    "endRow": 2,
+    "pages": 1,
+    "prePage": 0,
+    "nextPage": 0,
+    "isFirstPage": true,
+    "isLastPage": true,
+    "hasPreviousPage": false,
+    "hasNextPage": false,
+    "navigatePages": 8,
+    "navigatepageNums": [
+      1
+    ],
+    "navigateFirstPage": 1,
+    "navigateLastPage": 1,
+    "firstPage": 1,
+    "lastPage": 1
+  },
+  "isSuccess": true,
+  "msg": "操作成功",
+  "timestamp": "@natural(1510133532000,1564133532000)",
+  "code": 200
+}
+```
+
+
+
+
+

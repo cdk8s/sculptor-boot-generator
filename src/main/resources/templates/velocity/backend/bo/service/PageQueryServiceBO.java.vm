@@ -1,0 +1,18 @@
+package ${javaRootPackage}.pojo.bo.service.${classname};
+
+import ${javaRootPackage}.enums.DeleteEnum;
+import ${javaRootPackage}.pojo.dto.param.bases.PageParam;
+import lombok.*;
+import java.math.BigDecimal;
+import ${javaRootPackage}.pojo.bo.service.${classname}.bases.${ClassName}PageQueryBaseServiceBO;
+
+@Setter
+@Getter
+@NoArgsConstructor
+@ToString(callSuper = true)
+public class ${ClassName}PageQueryServiceBO extends ${ClassName}PageQueryBaseServiceBO {
+
+	private static final long serialVersionUID = -1L;
+
+
+}

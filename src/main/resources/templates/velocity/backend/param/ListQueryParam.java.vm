@@ -1,0 +1,29 @@
+package ${javaRootPackage}.pojo.dto.param.${classname};
+
+import ${javaRootPackage}.enums.DeleteEnum;
+import ${javaRootPackage}.pojo.dto.param.bases.PageParam;
+import ${javaRootPackage}.pojo.dto.param.bases.BaseQueryParam;
+import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.Range;
+import org.hibernate.validator.constraints.SafeHtml;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import java.util.List;
+
+@Setter
+@Getter
+@NoArgsConstructor
+@ToString(callSuper = true)
+public class ${ParamColumn}ListRequestParam extends BaseQueryParam {
+
+	private static final long serialVersionUID = -1L;
+
+	@NotEmpty(message = "${paramColumn}List 不能为空")
+	@Size(min = 1, message = "${paramColumn}List 至少需要一个元素")
+	private List<${attrType}> ${paramColumn}List;
+
+}

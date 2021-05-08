@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.cdk8s.code</groupId>
-	<artifactId>cdk8s-code-generator</artifactId>
+	<artifactId>sculptor-boot-generator</artifactId>
 	<version>1.0.0</version>
 	<packaging>jar</packaging>
 
@@ -39,6 +39,9 @@
 		<guava.version>27.0.1-jre</guava.version>
 		<jackson-databind.version>2.9.10.1</jackson-databind.version>
 		<fastjson.version>1.2.58</fastjson.version>
+
+		<slf4j.version>1.7.25</slf4j.version>
+		<logback.version>1.2.3</logback.version>
 
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
@@ -86,43 +89,24 @@
 		</dependency>
 		<!--mybatis 相关依赖 end-->
 
-		<!--采用 log4j2 start-->
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-slf4j-impl</artifactId>
-			<version>${log4j.version}</version>
-			<scope>compile</scope>
-			<exclusions>
-				<exclusion>
-					<artifactId>slf4j-api</artifactId>
-					<groupId>org.slf4j</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-			<version>${log4j.version}</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-jul</artifactId>
-			<version>${log4j.version}</version>
-			<scope>compile</scope>
-		</dependency>
+
+		<!-- logback start -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
-			<artifactId>jul-to-slf4j</artifactId>
-			<version>${jul-to-slf4j.version}</version>
-			<scope>compile</scope>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.lmax</groupId>
-			<artifactId>disruptor</artifactId>
-			<version>${disruptor.version}</version>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+			<version>${logback.version}</version>
 		</dependency>
-		<!--采用 log4j2 end-->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>${logback.version}</version>
+		</dependency>
+		<!-- logback end -->
 
 		<!--工具 start-->
 		<dependency>

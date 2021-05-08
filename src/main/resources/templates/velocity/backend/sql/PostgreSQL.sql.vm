@@ -1,0 +1,43 @@
+
+DROP TABLE IF EXISTS ${tableName};
+
+CREATE TABLE ${tableName}
+(
+#foreach ($column in $postgreSQLColumns)
+#if($column.boolIsNullable == false)
+#if($column.attrType == "String")
+#if($column.dataType == "json")
+    ${column.columnName}                   ${column.dataType}      NOT NULL,
+#elseif($column.dataType == "text")
+    ${column.columnName}                   ${column.dataType}      NOT NULL,
+#else
+    ${column.columnName}                   ${column.dataType}(${column.characterMaximumLength})      NOT NULL,
+#end
+#else
+    ${column.columnName}                   ${column.dataType}      NOT NULL,
+#end
+#else
+#if($column.attrType == "String")
+#if($column.dataType == "json")
+    ${column.columnName}                   ${column.dataType}      NULL,
+#elseif($column.dataType == "text")
+    ${column.columnName}                   ${column.dataType}      NULL,
+#else
+    ${column.columnName}                   ${column.dataType}(${column.characterMaximumLength})      NULL,
+#end
+#else
+    ${column.columnName}                   ${column.dataType}      NULL,
+#end
+#end
+#end
+    PRIMARY KEY (id)
+)
+WITH (
+   OIDS = FALSE
+);
+
+COMMENT ON TABLE ${tableName} IS '${tableComment}';
+#foreach ($column in $postgreSQLColumns)
+COMMENT ON COLUMN ${tableName}.${column.columnName} IS '${column.comment}';
+#end
+

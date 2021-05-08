@@ -1,0 +1,53 @@
+import request from '@/utils/request';
+import api from './api';
+
+export async function pageApiAjax(data: object) {
+  return request(api.${className}PageApiUrl, {
+    method: 'post',
+    data: data,
+  });
+}
+
+export async function detailApiAjax(data: object) {
+  return request(api.${className}DetailApiUrl, {
+    method: 'get',
+    params: data,
+  });
+}
+
+export async function createApiAjax(data: object) {
+  return request(api.${className}CreateApiUrl, {
+    method: 'post',
+    data: data,
+  });
+}
+
+export async function updateApiAjax(data: object) {
+  return request(api.${className}UpdateApiUrl, {
+    method: 'post',
+    data: data,
+  });
+}
+
+export async function deleteApiAjax(data: object) {
+  return request(api.${className}DeleteApiUrl, {
+    method: 'post',
+    data: data,
+  });
+}
+
+export async function cacheEvictApiAjax(data: object) {
+  return request(api.${className}CacheEvictApiUrl, {
+    method: 'get',
+    params: data,
+  });
+}
+
+#if($isIncludeStateEnum)
+export async function updateStateApiAjax(data: object) {
+  return request(api.${className}UpdateStateApiUrl, {
+    method: 'post',
+    data: data,
+  });
+}
+#end

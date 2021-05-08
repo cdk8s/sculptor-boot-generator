@@ -1,0 +1,25 @@
+package ${javaRootPackage}.pojo.dto.param.${classname};
+
+import ${javaRootPackage}.enums.DeleteEnum;
+import ${javaRootPackage}.pojo.dto.param.bases.PageParam;
+import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.Range;
+import org.hibernate.validator.constraints.SafeHtml;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Setter
+@Getter
+@NoArgsConstructor
+@ToString(callSuper = true)
+public class ${ClassName}${LikeParam}LikeQueryParam extends PageParam {
+
+	private static final long serialVersionUID = -1L;
+
+	@Length(max = ${maximumLength}, message = "${likeParam} 长度不正确")
+	@SafeHtml(whitelistType = SafeHtml.WhiteListType.NONE)
+	private String ${likeParam};
+
+}

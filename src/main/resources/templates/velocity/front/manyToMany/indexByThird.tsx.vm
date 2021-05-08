@@ -1,0 +1,727 @@
+import React, { Component } from 'react';
+import { Button, Card, Divider, Dropdown, Form, Icon, Menu, message, Modal, Popconfirm, Spin } from 'antd';
+import { connect } from 'dva';
+import get from 'lodash/get';
+import { FormComponentProps } from 'antd/lib/form/Form';
+import SearchForm from '@/components/HehSearch';
+import HehTable from '@/components/HehTable';
+import HehForm from '@/components/HehForm';
+import { handleDate } from '@/utils/columnsHandle';
+import {
+  deleteNullValue,
+  formatDateTimeStamp,
+  getEnumValueList,
+  mergeLoading
+} from '@/utils/utils';
+import HehReactJson from '@/components/HehReactJson';
+import BindTable from '@/components/BindTable';
+import '../../base.less';
+
+import {
+  createApi,
+  pageApi,
+  updateApi,
+  detailApi,
+  deleteApi,
+  cacheEvictApi,
+  detailApiReducer,
+} from '@/models/${ClassNameByThird}Model';
+
+import {
+  pageApiAjax as ${classNameBySecond}PageApiAjax,
+  batchCreateApiAjax as ${classNameBySecond}BatchCreateApiAjax,
+  deleteApiAjax as ${classNameBySecond}DeleteApiAjax,
+} from '@/services/${ClassNameBySecond}Service.ts';
+
+import {
+  pageApiAjax,
+  ${classNameByFirst}ListBy${LikeParamByFirst}WhereLikeApiAjax,
+} from '@/services/${ClassNameByFirst}Service';
+
+class Index extends Component<any, any> {
+  constructor(props: any) {
+    super(props);
+    this.state = {
+      detailModalVisible: false,
+      selectedRowKeys: [],
+      reactJsonVisible: false,
+      reactJson: undefined,
+    };
+  }
+
+  //=====================================生命周期 start=====================================
+
+  componentDidMount() {
+    this.pageApiDispatch();
+  }
+
+  componentWillUnmount() {
+
+  }
+
+  render() {
+    return (
+      <div style={{ margin: 20 }}>
+        <HehReactJson
+          visible={this.state.reactJsonVisible}
+          json={this.state.reactJson}
+          onCancel={() => this.setState({ reactJsonVisible: false })}
+        />
+        <Card style={{ minHeight: 500 }}>
+          {this.renderDetailModal()}
+          {this.renderSearchForm()}
+          {this.renderTable()}
+          {this.bindManyToMany()}
+        </Card>
+      </div>
+    );
+  }
+
+  bindManyToMany = () => {
+    const relationColumns = [{ title: '${foreignKeyNameByFirst} id', dataIndex: '${foreignKeyIdByFirst}' }, { title: '${foreignKeyNameByFirst}名称', dataIndex: '${likeParamByFirst}' }];
+    const bindColumns = [{ title: '${foreignKeyNameByFirst} id', dataIndex: 'id' }, { title: '${foreignKeyNameByFirst}名称', dataIndex: '${likeParamByFirst}' }];
+    const relationSearchItems = [
+      {
+        type: 'searchSelect',
+        id: '${foreignKeyIdByFirst}',
+        label: '${foreignKeyNameByFirst}名称',
+        attribute: {
+          fieldNames: { value: 'id', label: '${likeParamByFirst}' },
+          disabled: false,
+          isPagination: true,
+          optionsType: {
+            type: 'url',
+            data: ${classNameByFirst}ListBy${LikeParamByFirst}WhereLikeApiAjax,
+            dataParamsField: { labelKeys: '${likeParamByFirst}' },
+            ajaxToLabel: false,
+          },
+          multiple: false,
+        },
+      },
+      {
+        type: 'rangePicker',
+        label: '创建时间',
+        id: 'createDate',
+        attribute: {
+          allowClear: true,
+        },
+      },
+
+    ];
+    const bindSearchItems = [
+      {
+        type: 'input',
+        label: '${foreignKeyNameByFirst}名称',
+        id: '${likeParamByFirst}',
+        attribute: {
+          placeholder: '请输入${foreignKeyNameByFirst}名称',
+        },
+      },
+      {
+        type: 'rangePicker',
+        label: '创建时间',
+        id: 'createDate',
+        attribute: {
+          allowClear: true,
+        },
+      },
+
+    ];
+    return (
+      <BindTable
+        afterClose={() => {
+          this.setState({ ${classNameBySecond}BindId: undefined });
+        }}
+        visible={this.state.${classNameBySecond}Visible}
+        onCancel={() => this.setState({ ${classNameBySecond}Visible: false })}
+        id={this.state.${classNameBySecond}BindId}
+        // 第一个弹出模态框的 title
+        relationTitle={'查询绑定数据'}
+        // 第一个模态框 page 接口请求参数
+        relativeAjaxParams={{${foreignKeyIdByThird}: this.state.${classNameBySecond}BindId}}
+        // 第一个模态框的 page 接口
+        relationAjax={${classNameBySecond}PageApiAjax}
+        // 第一个模态框的解绑接口
+        relationUnBindAjax={${classNameBySecond}DeleteApiAjax}
+        // 第一个模态框的表头
+        relationColumns={relationColumns}
+        // 第一个模态框的搜索 item
+        relationSearchItems={relationSearchItems}
+        // 第二个弹出模态框的 title
+        bindTitle={'绑定${foreignKeyNameByFirst}'}
+        // 第二个模态框的 page 接口
+        bindAjax={pageApiAjax}
+        // 是否显示绑定和解绑按钮
+        noButton = {false}
+        // 第二个模态框点击确定的接口
+        bindOkAjax={${classNameBySecond}BatchCreateApiAjax}
+        // 第二个模态框确认请求的参数的 key (bindField: 被绑定的数据key, relationField: 绑定到哪个数据 key) 请求发的参数是({${foreignKeyIdByThird}List:[xxx,xxxx->勾选的 key], ${foreignKeyIdByFirst}List: [xxx-> 绑定的 key, 指的是上面传入的那个 id]})
+        bindOkAjaxFieldNames={{ bindField: '${foreignKeyIdByFirst}List', relationField: '${foreignKeyIdByThird}List' }}
+        // 第二个模态框的表头
+        bindColumns={bindColumns}
+        // 第二个模态框的搜索 items
+        bindSearchItems={bindSearchItems}
+      />
+    );
+  };
+  //=====================================生命周期  end=====================================
+
+  //=====================================函数式组件 start==================================
+
+  renderTable = () => {
+    const columns = [
+#foreach ($column in $frontendPageColumns)
+#if($column.lowerAttrName.toString().contains("Enum"))
+      { title: '${column.shortComment}', dataIndex: '${column.lowerAttrName}String', align: 'center' },
+#elseif($column.lowerAttrName.toString().contains("Date"))
+      { title: '${column.shortComment}', dataIndex: '${column.lowerAttrName}', align: 'center', width: 170, hehRender: (text: number) => handleDate(text) },
+#else
+      { title: '${column.shortComment}', dataIndex: '${column.lowerAttrName}', align: 'center' },
+#end
+#end
+#if($isIncludeRanking)
+      { title: '排序', dataIndex: 'ranking', align: 'center', width: 50 },
+#end
+#if($isIncludeStateEnum)
+      {
+        title: '状态', dataIndex: 'stateEnum', align: 'center', width: 90, hehRender: (text: string | number, record: any) => (
+          <Popconfirm
+            title="确认改变状态?"
+            onConfirm={() => this.updateStateApiDispatch([record.id], text === 1 ? 2 : 1)}
+            okText="确认"
+            cancelText="取消"
+          >
+            <Switch
+              checkedChildren="启用"
+              unCheckedChildren="禁用"
+              checked={text === 1}
+            />
+          </Popconfirm>
+        ),
+      },
+#end
+#if($isIncludeCreateDate)
+      // { title: '创建人', dataIndex: 'createUsername', align: 'center', width: 100 },
+      { title: '创建时间', dataIndex: 'createDate', align: 'center', hehRender: (text: number) => handleDate(text) },
+#end
+#if($isIncludeUpdateDate)
+      // { title: '更新人', dataIndex: 'updateUsername', align: 'center', width: 100 },
+      // { title: '更新时间', dataIndex: 'updateDate', align: 'center', width: 170, hehRender: (text: number) => handleDate(text) },
+#end
+      {
+        title: '操作', width: 180, fixed: 'right', dataIndex: 'operation', align: 'center', hehRender: (text: any, record: any) => (
+          <span>
+            <a onClick={() => this.detailApiDispatch(record)}><Icon type='edit'/>编辑</a>
+            <Divider type='vertical'/>
+            <a onClick={() => {
+              this.setState({ ${classNameBySecond}Visible: true, ${classNameBySecond}BindId: record.id });
+            }}><Icon type='link'/>查询绑定数据</a>
+            <Divider type='vertical'/>
+            <a onClick={() => this.detailApiDispatch(record, true)}><Icon type='search'/>详情</a>
+            <Divider type='vertical'/>
+            <Popconfirm
+              title="确认删除该条数据?"
+              okText="确定"
+              okType='danger'
+              onConfirm={() => this.deleteApiDispatch([record.id])}
+              cancelText="取消"
+            >
+              <a><Icon type="delete"/>删除</a>
+            </Popconfirm>
+          </span>
+        ),
+      },
+    ];
+    const {
+      pageValue,
+      pageLoading,
+      deleteLoading,
+    } = this.props;
+    return (
+      <>
+        <div style={{ marginBottom: 5 }}>
+          <Popconfirm
+            title="确认刷新缓存?"
+            onConfirm={this.cacheEvictApiDispatch}
+            okText="确认"
+            cancelText="取消"
+          >
+            <Button type='primary' style={{ marginRight: 5 }}>
+              <Icon type='reload'/>刷新缓存
+            </Button>
+          </Popconfirm>
+          <Button
+            onClick={() => this.setState({ detailModalVisible: true })}
+            style={{ width: 100 }}
+            type='primary'
+          >
+            <Icon type='plus'/>新建
+          </Button>
+          <Dropdown
+            disabled={this.state.selectedRowKeys.length === 0}
+            overlay={(
+              <Menu>
+                <Menu.Item>
+                  <Popconfirm
+                    title="确定执行批量删除操作?"
+                    onConfirm={() => this.deleteApiDispatch(this.state.selectedRowKeys)}
+                    okText="确定"
+                    cancelText="取消"
+                  >
+                    <Button>
+                      <Icon type='delete'/> 批量删除
+                    </Button>
+                  </Popconfirm>
+                </Menu.Item>
+              </Menu>
+            )}
+          >
+            <Button style={{ marginLeft: 5 }}>
+              批量操作 <Icon type='down'/>
+            </Button>
+          </Dropdown>
+        </div>
+        <HehTable
+          // adaptation={{ scroll: { x: 2000 } }}
+          columns={columns}
+          getSelectedRowKeys={this.getSelectedRowKeysEvent}
+          selectedRowKeys={this.state.selectedRowKeys}
+          data={pageValue && pageValue.data || []}
+          tableOptions={{
+            loading: mergeLoading(
+              pageLoading,
+              deleteLoading,
+            ),
+            bordered: true,
+            size: 'middle',
+          }}
+          pageChange={(pageNum, pageSize) => {
+            this.pageApiDispatch(pageNum, pageSize);
+          }}
+        />
+      </>
+    );
+  };
+
+  // ===========================
+
+  renderSearchForm = () => {
+    const searchItems = [
+#foreach ($column in $frontendSearchFormInputColumns)
+#if($column.lowerAttrName.toString().contains("Date"))
+      {
+        type: 'rangePicker',
+        label: '${column.shortComment}',
+        id: '${column.lowerAttrName}',
+        attribute: {
+          allowClear: true,
+        },
+      },
+#else
+      {
+        type: 'input',
+        label: '${column.shortComment}',
+        id: '${column.lowerAttrName}',
+        attribute: {
+          placeholder: '请输入${column.shortComment}',
+        },
+      },
+#end
+#end
+#if($isIncludeStateEnum)
+      {
+        type: 'select',
+        label: '状态',
+        id: 'stateEnum',
+        options: getEnumValueList('stateEnum'),
+        attribute: {
+          allowClear: true,
+          placeholder: '请选择',
+        },
+        optionAttribute: {
+          value: 'value',
+          label: 'label',
+        },
+      },
+#end
+
+#foreach ($column in $frontendPageNotBoolEnumColumns)
+      {
+        type: 'select',
+        label: '${column.shortComment}',
+        id: '${column.lowerAttrName}',
+        options: getEnumValueList('${column.lowerAttrName}'),
+        attribute: {
+          allowClear: true,
+          placeholder: '请选择',
+        },
+        optionAttribute: {
+          value: 'value',
+          label: 'label',
+        },
+      },
+#end
+
+#foreach ($column in $frontendPageBoolEnumColumns)
+      {
+        type: 'select',
+        label: '${column.shortComment}',
+        id: '${column.lowerAttrName}',
+        options: getEnumValueList('booleanEnum'),
+        attribute: {
+          allowClear: true,
+          placeholder: '请选择',
+        },
+        optionAttribute: {
+          value: 'value',
+          label: 'label',
+        },
+      },
+#end
+
+#if($isIncludeCreateDate)
+      {
+        type: 'rangePicker',
+        label: '创建时间',
+        id: 'createDate',
+        attribute: {
+          allowClear: true,
+        },
+      },
+#end
+
+#if($isIncludeUpdateDate)
+      {
+        type: 'rangePicker',
+        label: '更新时间',
+        id: 'updateDate',
+        attribute: {
+          allowClear: true,
+        },
+      },
+#end
+
+    ];
+    return (
+      <SearchForm
+        searchItems={searchItems}
+        getValue={this.getSearchFormValue}
+      />
+    );
+  };
+
+  // ===========================
+
+  renderDetailModal = () => {
+    const { detailValue, form, createLoading, updateLoading } = this.props;
+    const newFormItem = [
+#foreach ($column in $frontendNewModalColumns)
+#if($column.boolIsNullable == false)
+      {
+        type: 'input',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        defaultValue: get(detailValue, '${column.lowerAttrName}'),
+        attribute: {
+#if($column.attrType == "String")
+          maxLength: ${column.characterMaximumLength},
+#end
+#if($column.maxValue)
+          maxLength: ${column.maxValue},
+#end
+          disabled: this.state.detail,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '${column.shortComment}为必填项' },
+          ],
+        },
+      },
+#end
+#end
+
+#foreach ($column in $frontendNewModalColumns)
+#if($column.boolIsNullable == true)
+      { type: 'input', id: '${column.lowerAttrName}', label: '${column.shortComment}', defaultValue: get(detailValue, '${column.lowerAttrName}'), attribute: { disabled: this.state.detail } },
+#end
+#end
+
+#if($isIncludeRanking)
+      {
+        type: 'inputNumber',
+        id: 'ranking',
+        label: '排序',
+        defaultValue: get(detailValue, 'ranking') || 100,
+        attribute: {
+          disabled: this.state.detail,
+          max: 100,
+          min: 1,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '排序为必填项' },
+            {
+              validator: (rule: any, value: any, callback: any) => {
+                if (value < 1 || value > 100) {
+                  callback('值为1-100正整数，排序值越小排越前面！');
+                }
+                callback();
+              },
+            },
+          ],
+        },
+      },
+#end
+
+#foreach ($column in $frontendPageNotBoolEnumColumns)
+#if($column.boolIsNullable == false)
+      {
+        type: 'select',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        defaultValue: get(detailValue, '${column.lowerAttrName}'),
+        options: getEnumValueList('${column.lowerAttrName}'),
+        attribute: {
+          disabled: this.state.detail,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '${column.shortComment}为必填项' },
+          ],
+        },
+      },
+#end
+#if($column.boolIsNullable == true)
+      {
+        type: 'select',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        defaultValue: get(detailValue, '${column.lowerAttrName}'),
+        options: getEnumValueList('${column.lowerAttrName}'),
+        attribute: {
+          disabled: this.state.detail,
+        },
+      },
+#end
+#end
+
+#foreach ($column in $frontendPageBoolEnumColumns)
+      {
+        type: 'radio',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        options: getEnumValueList('booleanEnum'),
+        defaultValue: get(detailValue, '${column.lowerAttrName}'),
+        attribute: {
+          disabled: this.state.detail,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '${column.shortComment}为必填项' },
+          ],
+        },
+      },
+#end
+
+#if($isIncludeStateEnum)
+      {
+        type: 'radio',
+        id: 'stateEnum',
+        label: '状态',
+        options: getEnumValueList('stateEnum'),
+        defaultValue: get(detailValue, 'stateEnum'),
+        attribute: {
+          disabled: this.state.detail,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '状态为必填项' },
+          ],
+        },
+      },
+#end
+
+#if($isIncludeDescription)
+      { type: 'textarea', id: 'description', label: '描述', defaultValue: get(detailValue, 'description'), attribute: { disabled: this.state.detail } },
+#end
+
+    ];
+
+    return (
+      <Modal
+        afterClose={() => {
+          this.setState({ detail: false });
+          this.clearDetailValueEvent();
+        }}
+        destroyOnClose={true}
+        title={(() => {
+          if (detailValue && this.state.detail) {
+            return <span>详情</span>;
+          }
+          if (detailValue) {
+            return <span>编辑</span>;
+          }
+          return <span>新建</span>;
+        })()}
+        visible={this.state.detailModalVisible}
+        onOk={this.detailSubmitEvent}
+        centered={true}
+        width={1024}
+        onCancel={() => this.setState({ detailModalVisible: false })}
+        footer={!this.state.detail && (
+          <div>
+            <Button onClick={() => this.setState({ detailModalVisible: false })}>取消</Button>
+            <Button loading={mergeLoading(createLoading, updateLoading)} type='primary' onClick={this.detailSubmitEvent}>确定</Button>
+          </div>
+        )}
+      >
+        <Spin spinning={this.props.detailLoading || false}>
+          <HehForm
+            rowCols={2}
+            form={form}
+            formItems={newFormItem}
+          />
+        </Spin>
+      </Modal>
+    );
+  };
+
+  //=====================================函数式组件 end====================================
+
+  //=====================================组件工具方法 start==================================
+
+  getSearchFormValue = (values: any) => {
+    if (values.createDate && values.createDate.length === 2) {
+      values.createDateStartDate = formatDateTimeStamp(values.createDate[0], 'start');
+      values.createDateEndDate = formatDateTimeStamp(values.createDate[1], 'end');
+    }
+    delete values.createDate;
+    if (values.createDate === undefined && this.state.searchValue && this.state.searchValue.createDateEndDate !== undefined) {
+      delete this.state.searchValue.createDateStartDate;
+      delete this.state.searchValue.createDateEndDate;
+    }
+    if (values.updateDate && values.updateDate.length === 2) {
+      values.updateDateStartDate = formatDateTimeStamp(values.updateDate[0], 'start');
+      values.updateDateEndDate = formatDateTimeStamp(values.updateDate[1], 'end');
+    }
+    delete values.updateDate;
+    if (values.updateDate === undefined && this.state.searchValue && this.state.searchValue.updateDateEndDate !== undefined) {
+      delete this.state.searchValue.updateDateStartDate;
+      delete this.state.searchValue.updateDateEndDate;
+    }
+
+
+    this.setState({ searchValue: { ...this.state.searchValue, ...values } });
+    this.pageApiDispatch(1, 10, { ...this.state.searchValue, ...values });
+  };
+
+  getSelectedRowKeysEvent = (selectedRowKeys: any) => {
+    this.setState({ selectedRowKeys });
+  };
+
+  detailSubmitEvent = () => {
+    this.props.form.validateFields((err: any, values: any) => {
+      if (err) return;
+      const { detailValue } = this.props;
+      if (detailValue) {
+        this.updateApiDispatch({ ...values, id: detailValue.id });
+      } else {
+        this.createApiDispatch(values);
+      }
+    });
+  };
+
+  clearDetailValueEvent = () => {
+    this.props.dispatch({
+      type: detailApiReducer,
+      payload: undefined,
+    });
+  };
+
+  //=====================================组件工具方法 end====================================
+
+  //=====================================带请求方法 start=====================================
+
+  pageApiDispatch = (pageNum = 1, pageSize = 10, values = this.state.searchValue) => {
+    this.props.dispatch({
+      type: pageApi,
+      payload: deleteNullValue({
+        pageNum: pageNum,
+        pageSize: pageSize,
+        ...values,
+      }),
+    });
+  };
+
+  createApiDispatch = (values: object) => {
+    this.props.dispatch({
+      type: createApi,
+      payload: values,
+    }).then((response: any) => {
+      if (response && response.isSuccess) {
+        message.success(response.msg);
+        this.setState({ detailModalVisible: false });
+        this.pageApiDispatch();
+      }
+    });
+  };
+
+  updateApiDispatch = (values: object) => {
+    this.props.dispatch({
+      type: updateApi,
+      payload: values,
+    })
+      .then((response: any) => {
+        if (response && response.isSuccess) {
+          message.success(response.msg);
+          this.setState({ detailModalVisible: false });
+          this.pageApiDispatch();
+        }
+      });
+  };
+
+  detailApiDispatch = (record: any, detail?: boolean) => {
+    this.props.dispatch({
+      type: detailApi,
+      payload: { id: record.id },
+    });
+    this.setState({ detailModalVisible: true, detail });
+  };
+
+  deleteApiDispatch = (ids: any) => {
+    this.props.dispatch({
+      type: deleteApi,
+      payload: { idList: ids },
+    }).then((res: any) => {
+      if (res && res.isSuccess) {
+        message.success(res.msg);
+        this.setState({ selectedRowKeys: [] });
+        this.pageApiDispatch();
+      }
+    });
+  };
+
+  cacheEvictApiDispatch = () => {
+    this.props.dispatch({
+      type: cacheEvictApi,
+    }).then((res: any) => {
+      if (res.isSuccess) {
+        message.success(res.msg);
+        this.pageApiDispatch();
+      }
+    });
+  };
+
+
+  //=====================================带请求方法 end=====================================
+}
+
+export default connect(({ ${ClassNameByThird}Model, loading }: any) => ({
+  pageValue: ${ClassNameByThird}Model.pageValue,
+  detailValue: ${ClassNameByThird}Model.detailValue,
+  pageLoading: loading.effects[pageApi],
+  createLoading: loading.effects[createApi],
+  updateLoading: loading.effects[updateApi],
+  detailLoading: loading.effects[detailApi],
+  deleteLoading: loading.effects[deleteApi],
+}))(Form.create<FormComponentProps>()(Index));

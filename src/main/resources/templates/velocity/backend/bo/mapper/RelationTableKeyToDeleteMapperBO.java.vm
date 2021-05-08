@@ -1,0 +1,24 @@
+package ${javaRootPackage}.pojo.bo.mapper.${classname};
+
+import ${javaRootPackage}.pojo.bo.mapper.bases.BaseDeleteMapperBO;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.NoArgsConstructor;
+import java.util.List;
+import java.math.BigDecimal;
+
+
+@Setter
+@Getter
+@NoArgsConstructor
+@ToString(callSuper = true)
+public class ${ClassName}${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}ToDeleteMapperBO extends BaseDeleteMapperBO {
+
+	private static final long serialVersionUID = -1L;
+
+	private Long ${foreignKeyFirstColumn.lowerAttrName};
+	private Long ${foreignKeySecondColumn.lowerAttrName};
+
+}
+

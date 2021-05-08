@@ -5,7 +5,6 @@ import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.CharsetUtil;
 import com.cdk8s.code.gen.dto.TableEntity;
 import com.cdk8s.code.gen.util.FileUtil;
-import com.cdk8s.code.gen.util.StringUtil;
 import org.apache.commons.configuration.Configuration;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;

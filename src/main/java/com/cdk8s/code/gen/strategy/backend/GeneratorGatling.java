@@ -11,26 +11,28 @@ import java.io.File;
 public class GeneratorGatling implements GeneratorStrategy {
 
 	@Override
-	public void generatorFile(VelocityContext context, TableEntity tableEntity, Configuration config) {
+	public void generatorFile(VelocityContext context, Configuration config) {
+		TableEntity tableEntity = (TableEntity) context.get("tableEntity");
+
 		page(context, tableEntity, config);
 		create(context, tableEntity, config);
 		batchDelete(context, tableEntity, config);
 	}
 
 	private void page(VelocityContext context, TableEntity tableEntity, Configuration config) {
-		String template = "templates/velocity/gatling/Page.scala.vm";
+		String template = "templates/velocity/backend/gatling/Page.scala.vm";
 		String fileName = getFileName(config, tableEntity.getUpperClassName(), "Page");
 		GeneratorCommonUtil.generatorFile(context, tableEntity, config, template, fileName);
 	}
 
 	private void create(VelocityContext context, TableEntity tableEntity, Configuration config) {
-		String template = "templates/velocity/gatling/Create.scala.vm";
+		String template = "templates/velocity/backend/gatling/Create.scala.vm";
 		String fileName = getFileName(config, tableEntity.getUpperClassName(), "Create");
 		GeneratorCommonUtil.generatorFile(context, tableEntity, config, template, fileName);
 	}
 
 	private void batchDelete(VelocityContext context, TableEntity tableEntity, Configuration config) {
-		String template = "templates/velocity/gatling/BatchDelete.scala.vm";
+		String template = "templates/velocity/backend/gatling/BatchDelete.scala.vm";
 		String fileName = getFileName(config, tableEntity.getUpperClassName(), "BatchDelete");
 		GeneratorCommonUtil.generatorFile(context, tableEntity, config, template, fileName);
 	}

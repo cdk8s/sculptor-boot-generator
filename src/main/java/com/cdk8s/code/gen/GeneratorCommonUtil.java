@@ -21,8 +21,8 @@ public final class GeneratorCommonUtil {
 	/**
 	 * 生成代码
 	 */
-	public static Map<String, Object> buildContextParam(Configuration config, Map<String, String> table, List<Map<String, Object>> columns) {
-		Map<String, Object> contextParam = new HashMap<>(16);
+	public static Map<String, Object> buildContextParam(Configuration config, Map<String, String> tableInfo, List<Map<String, Object>> columns) {
+		Map<String, Object> contextParam = new HashMap<>(30);
 		contextParam.put("isRelationTable", false);
 		contextParam.put("isIncludeParentId", false);
 		contextParam.put("isIncludeRanking", false);
@@ -31,16 +31,18 @@ public final class GeneratorCommonUtil {
 		contextParam.put("isIncludeUpdateDate", false);
 		contextParam.put("isIncludeStateEnum", false);
 		contextParam.put("isIncludeDeleteEnum", false);
+		contextParam.put("isIncludeTenantId", false);
 
 		//表信息
 		TableEntity tableEntity = new TableEntity();
-		tableEntity.setTableName(table.get("tableName"));
-		tableEntity.setComments(table.get("tableComment"));
+		tableEntity.setTableName(tableInfo.get("tableName"));
+		tableEntity.setComments(tableInfo.get("tableComment"));
 
 		//表名转换成Java类名
 		String ClassName = buildClassName(tableEntity.getTableName());
 		tableEntity.setUpperClassName(ClassName);
 		tableEntity.setLowerClassName(StringUtil.uncapitalize(ClassName));
+		tableEntity.setBoolMySQL8(Boolean.valueOf(tableInfo.get("boolMySQL8")));
 
 		//列信息
 		List<ColumnEntity> columnList = buildColumnEntityList(config, tableEntity, columns, contextParam);
@@ -64,11 +66,13 @@ public final class GeneratorCommonUtil {
 		contextParam.put("className", tableEntity.getLowerClassName());
 		contextParam.put("classname", StringUtil.lowerCase(tableEntity.getLowerClassName()));
 		contextParam.put("class_name", StringUtil.lowerCamelToLowerUnderscore(tableEntity.getLowerClassName()));
+		contextParam.put("lower_first", StringUtil.lowerFirstFromSeparator(tableEntity.getTableName(), "_"));
 		contextParam.put("pathName", tableEntity.getLowerClassName().toLowerCase());
 		contextParam.put("columns", tableEntity.getColumns());
 		contextParam.put("datetime", DateUtil.now());
 		contextParam.put("moduleName", config.getString("moduleName"));
 		contextParam.put("javaRootPackage", config.getString("javaRootPackage"));
+		contextParam.put("boolEnableCache", config.getBoolean("boolEnableCache"));
 		return contextParam;
 	}
 
@@ -87,7 +91,7 @@ public final class GeneratorCommonUtil {
 			columnEntity.setComment(columnComment);
 			columnEntity.setShortComment(buildColumnShortComment(columnComment));
 
-			String maxValue = StringUtil.substringAfter(columnComment, "max=");
+			String maxValue = StringUtil.substringAfter(columnComment.toLowerCase(), "max=");
 			if (StringUtil.isNotBlank(maxValue)) {
 				columnEntity.setMaxValue(Integer.valueOf(maxValue));
 			}
@@ -107,7 +111,11 @@ public final class GeneratorCommonUtil {
 			}
 			Object characterMaximumLength = column.get("characterMaximumLength");
 			if (null != characterMaximumLength) {
-				columnEntity.setCharacterMaximumLength(((BigInteger) characterMaximumLength).intValue());
+				if (tableEntity.getBoolMySQL8()) {
+					columnEntity.setCharacterMaximumLength(((Long) characterMaximumLength).intValue());
+				} else {
+					columnEntity.setCharacterMaximumLength(((BigInteger) characterMaximumLength).intValue());
+				}
 			}
 
 			if (StringUtil.startsWith(tableEntity.getTableName(), "rel_")) {
@@ -142,6 +150,19 @@ public final class GeneratorCommonUtil {
 				contextParam.put("isIncludeDeleteEnum", true);
 			}
 
+			if (StringUtil.equalsIgnoreCase(columnEntity.getColumnName(), "tenant_id")) {
+				contextParam.put("isIncludeTenantId", true);
+			}
+
+			if (StringUtil.containsAny(columnEntity.getComment(), "treeName")) {
+				contextParam.put("treeName", StringUtil.uncapitalize(buildUpperAttrName(columnEntity.getColumnName())));
+				contextParam.put("TreeName", buildUpperAttrName(columnEntity.getColumnName()));
+			}
+
+			if (StringUtil.containsAny(columnEntity.getComment(), "oneToManyKey")) {
+				contextParam.put("oneToManyKey", StringUtil.uncapitalize(buildUpperAttrName(columnEntity.getColumnName())));
+			}
+
 			columnEntity.setDataType((String) column.get("dataType"));
 			columnEntity.setExtra((String) column.get("extra"));
 
@@ -168,7 +189,8 @@ public final class GeneratorCommonUtil {
 	 * 短的备注（去掉冒号后面部分）
 	 */
 	private static String buildColumnShortComment(String columnComment) {
-		return StringUtil.substringBefore(columnComment, ":");
+		// 如果中间有英文括号里面的注释内容，不会被使用
+		return StringUtil.substringBefore(StringUtil.substringBefore(columnComment, ":"), "(");
 	}
 
 	private static String buildUpperAttrName(String columnName) {

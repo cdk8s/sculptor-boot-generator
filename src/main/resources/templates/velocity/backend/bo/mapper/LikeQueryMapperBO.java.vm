@@ -1,0 +1,27 @@
+package ${javaRootPackage}.pojo.bo.mapper.${classname};
+
+import ${javaRootPackage}.enums.DeleteEnum;
+import ${javaRootPackage}.pojo.dto.param.bases.PageParam;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Setter
+@Getter
+@NoArgsConstructor
+@ToString(callSuper = true)
+public class ${ClassName}${LikeParam}LikeQueryMapperBO extends PageParam {
+
+	private static final long serialVersionUID = -1L;
+
+	private String ${likeParam};
+
+#if($isIncludeStateEnum)
+	private Integer stateEnum;
+#end
+
+#if($isIncludeDeleteEnum)
+	private Integer deleteEnum = DeleteEnum.NOT_DELETED.getCode();
+#end
+}

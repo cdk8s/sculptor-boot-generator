@@ -1,0 +1,40 @@
+package ${javaRootPackage}.pojo.dto.response.${classname}.bases;
+
+import ${javaRootPackage}.pojo.entity.bases.BaseEntity;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import java.io.Serializable;
+import java.util.List;
+import java.math.BigDecimal;
+
+@Setter
+@Getter
+@ToString(callSuper = true)
+public class ${ClassName}BaseResponseDTO extends BaseEntity {
+
+	private static final long serialVersionUID = -1L;
+
+#foreach ($column in $responseDTOColumns)
+	private $column.attrType $column.lowerAttrName;
+
+#end
+
+#if($isIncludeCreateDate)
+	private Long createDate;
+
+	private Long createUserId;
+
+	private String createUsername;
+#end
+
+#if($isIncludeUpdateDate)
+	private Long updateDate;
+
+	private Long updateUserId;
+
+	private String updateUsername;
+#end
+
+
+}

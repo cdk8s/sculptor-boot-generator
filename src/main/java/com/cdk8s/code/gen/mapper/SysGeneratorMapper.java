@@ -8,6 +8,7 @@ import java.util.Map;
 
 public interface SysGeneratorMapper {
 
+	Map<String, String> selectMySQLVersion();
 
 	List<Map<String, Object>> queryList(@Param("tableName") String tableName);
 

@@ -1,0 +1,485 @@
+import React, { Component } from 'react';
+import {
+  Card,
+  Row,
+  Col,
+  Popconfirm,
+  Form,
+  Button,
+  message,
+  Spin,
+  Icon,
+} from 'antd';
+import { connect } from 'dva';
+import get from 'lodash/get';
+import { FormComponentProps } from 'antd/lib/form/Form';
+import HehForm from '@/components/HehForm';
+import HehTree from '@/components/HehTree';
+import { mergeLoading, getEnumValueList } from '@/utils/utils';
+
+import {
+  createApi,
+  updateApi,
+  detailApi,
+  deleteApi,
+  cacheEvictApi,
+  detailApiReducer,
+  treeListApi,
+} from '@/models/${ClassName}Model';
+
+class Index extends Component<any, any> {
+  constructor(props: any) {
+    super(props);
+    this.state = {
+      selectedNames: [],
+      selectKeys: [],
+      checkedKeys: [],
+      clearSelected: 0,
+      clearChecked: 0,
+      btnType: 0,
+    };
+  }
+
+  //=====================================生命周期 start=====================================
+
+  componentDidMount() {
+    this.treeListApiDispatch();
+  }
+
+  componentWillUnmount() {
+
+  }
+
+  render() {
+    return (
+      <div>
+        <Row style={{ padding: 20 }} gutter={20}>
+          {this.renderTreeToLeft()}
+          {this.renderFormToRight()}
+        </Row>
+      </div>
+    );
+  }
+
+  //=====================================生命周期  end=====================================
+
+  //=====================================函数式组件 start==================================
+
+  renderTreeToLeft = () => {
+    return (
+      <Col span={6}>
+        <Card>
+          <Popconfirm
+            title="确认刷新缓存?"
+            onConfirm={this.cacheEvictApiDispatch}
+            okText="确认"
+            cancelText="取消"
+          >
+            <Button type='primary' style={{ marginRight: 5 }}>
+              <Icon type='reload'/>刷新缓存
+            </Button>
+          </Popconfirm>
+          <Button disabled={this.state.selectKeys.length === 0} onClick={() => {
+            this.setState({ btnType: 1 }, () => {
+              this.clearDetailValueEvent({
+                parentName: this.state.selectedNames[0],
+                parentId: this.state.selectKeys[0],
+              });
+            });
+          }} type='primary' style={{ marginRight: 5 }}>
+            <Icon type='plus'/>添加子节点
+          </Button>
+          <Button onClick={() => {
+            this.setState({ btnType: 2 }, () => {
+              this.clearDetailValueEvent({
+                parentName: '顶级节点',
+                parentId: 1,
+              });
+            });
+          }} type='primary' style={{ marginRight: 5 }}>
+            <Icon type='plus'/>创建一级节点
+          </Button>
+
+          #set($mySpecialSymbol="$")
+
+          <Popconfirm
+            title={`确认批量删除${mySpecialSymbol}{this.state.checkedNames && this.state.checkedNames.join('、')}`}
+            onConfirm={this.deleteApiDispatch}
+            okText="确认"
+            cancelText="取消"
+            disabled={this.state.checkedKeys.length === 0}
+          >
+            <Button disabled={this.state.checkedKeys.length === 0} type='primary' style={{ marginRight: 5 }}>
+              <Icon type='delete'/> 批量删除
+            </Button>
+          </Popconfirm>
+          <HehTree
+            showInfo={{ showSelectedNames: true, showCheckedNames: true }}
+            checkable={true}
+            allExpand={true}
+            showSearch={true}
+            showOperation={true}
+            propsCheckStrictlyBtn={false}
+            propsCheckStrictly={false}
+            loading={mergeLoading(this.props.treeListLoading, this.props.cacheEvictLoading)}
+            data={this.props.treeListValue}
+            field={{ title: '${treeName}', id: 'id' }}
+            getSelectKeys={this.getSelectKeysEvent}
+            setSelectedPropsKeys={this.state.selectKeys}
+            setCheckedPropsKeys={this.state.checkedKeys}
+            getCheckedKeys={this.getCheckedKeysEvent}
+            getSelectNames={this.getSelectNamesEvent}
+            getCheckedNames={this.getCheckedNamesEvent}
+            clearSelected={this.state.clearSelected}
+            clearChecked={this.state.clearChecked}
+          />
+        </Card>
+      </Col>
+    );
+  };
+
+  renderFormToRight = () => {
+    const { form, detailValue } = this.props;
+    const formDisabled = this.state.selectKeys.length === 0 && this.state.btnType === 0;
+    const newFormItem = [
+      this.state.btnType !== 0 ? {
+        type: 'input',
+        id: 'parentName',
+        label: '父级节点',
+        defaultValue: get(detailValue, 'parentName'),
+        attribute: { disabled: true },
+      } : {},
+      this.state.btnType !== 0 ? {
+        type: 'input',
+        id: 'parentId',
+        label: '父级节点id',
+        style: { display: 'none' },
+        defaultValue: get(detailValue, 'parentId'),
+        attribute: { disabled: true },
+      } : {},
+
+#foreach ($column in $frontendNewModalColumnsToTree)
+#if($column.boolIsNullable == false)
+      {
+        type: 'input',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        defaultValue: get(detailValue, '${column.lowerAttrName}'),
+        attribute: {
+#if($column.attrType == "String")
+          maxLength: ${column.characterMaximumLength},
+#end
+#if($column.maxValue)
+          maxLength: ${column.maxValue},
+#end
+          disabled:formDisabled,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '${column.shortComment}为必填项' },
+          ],
+        },
+      },
+#end
+#end
+
+#foreach ($column in $frontendNewModalColumnsToTree)
+#if($column.boolIsNullable == true)
+      { type: 'input', id: '${column.lowerAttrName}', label: '${column.shortComment}', defaultValue: get(detailValue, '${column.lowerAttrName}'), attribute: { disabled } },
+#end
+#end
+
+#if($isIncludeRanking)
+      {
+        type: 'inputNumber',
+        id: 'ranking',
+        label: '排序',
+        defaultValue: get(detailValue, 'ranking') || 100,
+        attribute: {
+          disabled:formDisabled,
+          max: 100,
+          min: 1,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '排序为必填项' },
+            {
+              validator: (rule: any, value: any, callback: any) => {
+                if (value < 1 || value > 100) {
+                  callback('值为1-100正整数，排序值越小排越前面！');
+                }
+                callback();
+              },
+            },
+          ],
+        },
+      },
+#end
+
+#foreach ($column in $frontendPageNotBoolEnumColumns)
+#if($column.boolIsNullable == false)
+      {
+        type: 'select',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        defaultValue: get(detailValue, '${column.lowerAttrName}'),
+        options: getEnumValueList('${column.lowerAttrName}'),
+        attribute: {
+          disabled:formDisabled,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '${column.shortComment}为必填项' },
+          ],
+        },
+      },
+#end
+#if($column.boolIsNullable == true)
+      {
+        type: 'select',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        defaultValue: get(detailValue, '${column.lowerAttrName}'),
+        options: getEnumValueList('${column.lowerAttrName}'),
+        attribute: {
+          disabled:formDisabled,
+        },
+      },
+#end
+#end
+
+#foreach ($column in $frontendPageBoolEnumColumns)
+      {
+        type: 'radio',
+        id: '${column.lowerAttrName}',
+        label: '${column.shortComment}',
+        options: getEnumValueList('booleanEnum'),
+        defaultValue: get(detailValue, '${column.lowerAttrName}'),
+        attribute: {
+          disabled:formDisabled,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '${column.shortComment}为必填项' },
+          ],
+        },
+      },
+#end
+
+#if($isIncludeStateEnum)
+      {
+        type: 'radio',
+        id: 'stateEnum',
+        label: '状态',
+        options: getEnumValueList('stateEnum'),
+        defaultValue: get(detailValue, 'stateEnum'),
+        attribute: {
+          disabled:formDisabled,
+        },
+        formDecoratorOptions: {
+          rules: [
+            { required: true, message: '状态为必填项' },
+          ],
+        },
+      },
+#end
+
+#if($isIncludeDescription)
+      { type: 'textarea', id: 'description', label: '描述', defaultValue: get(detailValue, 'description'), attribute: { disabled:formDisabled } },
+#end
+
+    ];
+    return (
+      <Col span={18}>
+        <Card>
+          <Spin spinning={this.props.detailLoading || false}>
+            <HehForm
+              rowCols={2}
+              form={form}
+              formItems={newFormItem}
+            />
+            <div style={{ textAlign: 'center' }}>
+              <Popconfirm
+                title={((): any => {
+                  if (this.state.btnType === 1) return '确认添加子节点?';
+                  if (this.state.btnType === 2) return '确认添加一级节点?';
+                  return '确认修改?';
+                })()}
+                onConfirm={this.detailSubmitEvent}
+                okText="确认"
+                cancelText="取消"
+              >
+                <Button type='primary'>{((): any => {
+                  if (this.state.btnType === 1) return '添加子节点';
+                  if (this.state.btnType === 2) return '添加一级节点';
+                  return '保存修改';
+                })()}</Button>
+              </Popconfirm>
+            </div>
+          </Spin>
+        </Card>
+      </Col>
+    );
+  };
+
+  //=====================================函数式组件 end==================================
+
+  //=====================================组件工具方法 start====================================
+
+  getCheckedNamesEvent = (keys: any) => {
+    this.setState({ checkedNames: keys });
+  };
+
+  getCheckedKeysEvent = (keys: any) => {
+    this.setState({ checkedKeys: keys });
+  };
+
+  getSelectNamesEvent = (names: any) => {
+    this.setState({ selectedNames: names });
+  };
+
+  getSelectKeysEvent = (selectKeys: any) => {
+    this.setState({ selectKeys, btnType: 0 });
+    this.detailApiDispatch({ id: selectKeys[0] });
+  };
+
+  detailSubmitEvent = (e: any) => {
+    e.preventDefault();
+    this.props.form.validateFieldsAndScroll((err: any, values: any) => {
+      if (!err) {
+        if (this.state.btnType === 0) {
+          this.updateApiDispatch(values);
+        } else {
+          this.createApiDispatch(values);
+        }
+      }
+    });
+  };
+
+  clearDetailValueEvent = (data: any) => {
+    this.props.dispatch({
+      type: detailApiReducer,
+      payload: data,
+    });
+  };
+
+  //=====================================组件工具方法 end====================================
+
+  //=====================================请求函数 start================================
+
+  treeListApiDispatch = () => {
+    this.props.dispatch({
+      type: treeListApi,
+      payload: {
+        parentId: 1,
+      },
+    });
+  };
+
+  createApiDispatch = (values: any) => {
+    this.props.dispatch({
+      type: createApi,
+      payload: values,
+    }).then((res: any) => {
+      if (res && res.isSuccess) {
+        this.clearDetailValueEvent(undefined);
+        this.setState({ btnType: 0 });
+        message.success(res.msg);
+        this.treeListApiDispatch();
+      }
+    });
+  };
+
+  updateApiDispatch = (values: any) => {
+    this.props.dispatch({
+      type: updateApi,
+      payload: {
+        ...values,
+        id: this.props.detailValue.id,
+      },
+    }).then((res: any) => {
+      if (res && res.isSuccess) {
+        // this.props.form.resetFields();
+        this.detailApiDispatch({ id: this.state.selectKeys[0] });
+        this.treeListApiDispatch();
+        message.success(res.msg);
+      }
+    });
+  };
+
+  detailApiDispatch = (record: any) => {
+    this.props.dispatch({
+      type: detailApi,
+      payload: { id: record.id },
+    });
+  };
+
+  deleteApiDispatch = () => {
+    this.props.dispatch({
+      type: deleteApi,
+      payload: {
+        idList: this.state.checkedKeys,
+      },
+    }).then((res: any) => {
+      if (res && res.isSuccess) {
+        message.success(res.msg);
+        if (this.state.selectKeys[0] && this.state.checkedKeys.includes(this.state.selectKeys[0])) {
+          this.setState({
+            clearChecked: this.state.clearChecked + 1,
+            clearSelected: this.state.clearSelected + 1,
+            checkedKeys: [],
+            selectKeys: [],
+          });
+        } else {
+          this.setState({
+            clearChecked: this.state.clearChecked + 1,
+            checkedKeys: [],
+          });
+        }
+        this.treeListApiDispatch();
+      }
+    });
+  };
+
+  cacheEvictApiDispatch = () => {
+    this.props.dispatch({
+      type: cacheEvictApi,
+    }).then((res: any) => {
+      if (res.isSuccess) {
+        message.success(res.msg);
+        this.treeListApiDispatch();
+      }
+    });
+  };
+
+  //=====================================请求函数 end==================================
+}
+
+export default connect(({ ${ClassName}Model, loading }: any) => ({
+  treeListValue: ${ClassName}Model.treeListValue,
+  detailValue: ${ClassName}Model.detailValue,
+
+  treeListLoading: loading.effects[treeListApi],
+  detailLoading: loading.effects[detailApi],
+  cacheEvictLoading: loading.effects[cacheEvictApi],
+}))(Form.create<FormComponentProps>({
+  mapPropsToFields(props) {
+    return {
+      username: Form.createFormField({
+        ...props,
+      }),
+    };
+  },
+  onValuesChange: (props, changedValues, allValues) => {
+    // @ts-ignore
+    if (props.detailValue && props.detailValue.id) {
+      // @ts-ignore
+      allValues.id = props.detailValue.id;
+    }
+    // @ts-ignore
+    props.dispatch({
+      type: detailApiReducer,
+      payload: allValues,
+    });
+  },
+})(Index));

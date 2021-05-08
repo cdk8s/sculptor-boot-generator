@@ -1,0 +1,41 @@
+package ${javaRootPackage}.pojo.dto.param.${classname}.bases;
+
+import ${javaRootPackage}.pojo.dto.param.bases.PageParam;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import java.io.Serializable;
+import org.hibernate.validator.constraints.Range;
+import javax.validation.constraints.DecimalMax;
+import javax.validation.constraints.DecimalMin;
+import java.math.BigDecimal;
+
+@Setter
+@Getter
+@ToString(callSuper = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ${ClassName}PageQueryBaseParam extends PageParam {
+
+	private static final long serialVersionUID = -1L;
+
+#foreach ($column in $pageQueryParamColumns)
+#if($column.maxValue)
+#if($column.dataType == "decimal")
+	@DecimalMin(value = "0.00", inclusive = true, message = "$column.shortComment数值不正确")
+	@DecimalMax(value = "$column.maxValue", inclusive = true, message = "$column.shortComment数值不正确")
+#else
+	@Range(min = 1, max = $column.maxValue, message = "$column.shortComment数值不正确")
+#end
+#end
+	private $column.attrType $column.lowerAttrName;
+
+#end
+
+#foreach($column in $allDateColumns)
+	private $column.attrType ${column.lowerAttrName}StartDate;
+	private $column.attrType ${column.lowerAttrName}EndDate;
+
+#end
+
+}

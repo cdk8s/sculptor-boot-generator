@@ -1,0 +1,17 @@
+package ${javaRootPackage}.pojo.bo.service.${classname};
+
+import lombok.*;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import ${javaRootPackage}.pojo.bo.service.${classname}.bases.${ClassName}UpdateBaseServiceBO;
+
+@Setter
+@Getter
+@NoArgsConstructor
+@ToString(callSuper = true)
+public class ${ClassName}UpdateServiceBO extends ${ClassName}UpdateBaseServiceBO {
+
+	private static final long serialVersionUID = -1L;
+
+
+}

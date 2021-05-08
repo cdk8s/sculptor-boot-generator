@@ -4,6 +4,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 随机数工具类
@@ -22,6 +23,10 @@ public final class RandomUtil {
 	 */
 	public static int nextInt(final int startInclusive, final int endExclusive) {
 		return RandomUtils.nextInt(startInclusive, endExclusive);
+	}
+
+	public static int nextInt(final int endExclusive) {
+		return RandomUtils.nextInt(0, endExclusive);
 	}
 
 	/**
@@ -46,6 +51,11 @@ public final class RandomUtil {
 		return nextDouble(startInclusive, endExclusive, 2);
 	}
 
+	public static BigDecimal nextBigDecimal(final int startInclusive, final int endExclusive) {
+		BigDecimal result = new BigDecimal(nextDouble(startInclusive, endExclusive));
+		return result.setScale(2, BigDecimal.ROUND_HALF_UP);
+	}
+
 	/**
 	 * 随机正双精度浮点数（默认精度 2，四舍五入）
 	 *
@@ -60,6 +70,14 @@ public final class RandomUtil {
 		}
 		double nextDouble = RandomUtils.nextDouble(startInclusive, endExclusive);
 		return new BigDecimal(nextDouble).setScale(scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+	}
+
+	public static BigDecimal nextBigDecimal(final int startInclusive, final int endExclusive, Integer scale) {
+		if (null == scale) {
+			scale = 2;
+		}
+		BigDecimal result = new BigDecimal(nextDouble(startInclusive, endExclusive));
+		return result.setScale(scale, BigDecimal.ROUND_HALF_UP);
 	}
 
 	/**
@@ -122,6 +140,13 @@ public final class RandomUtil {
 		return RandomStringUtils.random(count, new char[]{'a', 'b', 'c', 'd', 'e', 'f', '1', '2', '3'});
 	}
 
+	/**
+	 * 随机获得列表中的元素
+	 */
+	public static <T> T randomElement(List<T> list) {
+		return list.get(nextInt(0, list.size()));
+	}
+
 
 	//=====================================Apache Common 包  end=====================================
 
@@ -136,6 +161,10 @@ public final class RandomUtil {
 	//=====================================私有方法  end=====================================
 
 }
+
+
+
+
 
 
 

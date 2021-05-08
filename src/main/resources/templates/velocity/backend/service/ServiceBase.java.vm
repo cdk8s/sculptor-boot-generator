@@ -1,0 +1,825 @@
+package ${javaRootPackage}.service.bases;
+
+import ${javaRootPackage}.enums.*;
+import ${javaRootPackage}.constant.GlobalConstant;
+import ${javaRootPackage}.mapper.${ClassName}Mapper;
+import ${javaRootPackage}.mapstruct.${ClassName}MapStruct;
+import ${javaRootPackage}.pojo.bo.mapper.${classname}.*;
+import ${javaRootPackage}.pojo.bo.service.${classname}.*;
+import ${javaRootPackage}.pojo.bo.mapper.bases.*;
+import ${javaRootPackage}.pojo.bo.service.bases.*;
+#if($isRelationTable)
+import ${javaRootPackage}.pojo.bo.service.${classname}.bases.${ClassName}BatchCreateServiceBO;
+import ${javaRootPackage}.util.CollectionUtil;
+#end
+#if($isIncludeRanking)
+import ${javaRootPackage}.mapstruct.BatchUpdateRankingMapStruct;
+#end
+#if($isIncludeParentId)
+import ${javaRootPackage}.exception.BusinessException;
+import ${javaRootPackage}.mapstruct.ParentIdAndParentIdListMapStruct;
+#end
+import ${javaRootPackage}.pojo.entity.${ClassName};
+import ${javaRootPackage}.util.id.GenerateIdUtil;
+import ${javaRootPackage}.util.CollectionUtil;
+import ${javaRootPackage}.util.DatetimeUtil;
+import ${javaRootPackage}.exception.BusinessException;
+import ${javaRootPackage}.mapstruct.IdAndIdListMapStruct;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.util.ArrayList;
+import java.util.List;
+import java.math.BigDecimal;
+
+@Slf4j
+#if($boolEnableCache && $isRelationTable == false)
+@CacheConfig(cacheNames = "${ClassName}Service")
+#end
+public class ${ClassName}ServiceBase {
+
+	@Autowired
+	private ${ClassName}Mapper ${className}Mapper;
+
+	@Autowired
+	private ${ClassName}MapStruct ${className}MapStruct;
+
+	@Autowired
+	private IdAndIdListMapStruct idAndIdListMapStruct;
+
+#if($isIncludeParentId)
+	@Autowired
+	private ParentIdAndParentIdListMapStruct parentIdAndParentIdListMapStruct;
+#end
+
+#if($isIncludeRanking)
+	@Autowired
+	private BatchUpdateRankingMapStruct batchUpdateRankingMapStruct;
+#end
+	// =====================================查询业务 start=====================================
+
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public ${ClassName} findOneById(IdServiceBO serviceBO) {
+		return ${className}Mapper.selectById(idAndIdListMapStruct.serviceBOToMapperBO(serviceBO));
+	}
+
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public ${ClassName} findOneByIdNotEnum(IdServiceBO serviceBO) {
+		IdMapperBO mapperBO = idAndIdListMapStruct.serviceBOToMapperBO(serviceBO);
+#if($isIncludeDeleteEnum)
+		mapperBO.setDeleteEnum(null);
+#end
+#if($isIncludeStateEnum)
+		mapperBO.setStateEnum(null);
+#end
+		return ${className}Mapper.selectById(mapperBO);
+	}
+
+#foreach ($column in $foreignKeyColumns)
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public ${ClassName} findOneBy${column.upperAttrName}(${ClassName}${column.upperAttrName}ServiceBO serviceBO) {
+		return ${className}Mapper.selectOneBy${column.upperAttrName}(${className}MapStruct.${column.lowerAttrName}ServiceBOToMapperBO(serviceBO));
+	}
+
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public ${ClassName} findOneBy${column.upperAttrName}NotEnum(${ClassName}${column.upperAttrName}ServiceBO serviceBO) {
+		${ClassName}${column.upperAttrName}MapperBO mapperBO = ${className}MapStruct.${column.lowerAttrName}ServiceBOToMapperBO(serviceBO);
+#if($isIncludeDeleteEnum)
+		mapperBO.setDeleteEnum(null);
+#end
+#if($isIncludeStateEnum)
+		mapperBO.setStateEnum(null);
+#end
+		return ${className}Mapper.selectOneBy${column.upperAttrName}(mapperBO);
+	}
+
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public List<${ClassName}> findListBy${column.upperAttrName}(${ClassName}${column.upperAttrName}ServiceBO serviceBO) {
+		return ${className}Mapper.selectBy${column.upperAttrName}(${className}MapStruct.${column.lowerAttrName}ServiceBOToMapperBO(serviceBO));
+	}
+
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public List<${ClassName}> findListBy${column.upperAttrName}List(${ClassName}${column.upperAttrName}ListServiceBO serviceBO) {
+		return ${className}Mapper.selectBy${column.upperAttrName}List(${className}MapStruct.${column.lowerAttrName}ListServiceBOToMapperBO(serviceBO));
+	}
+
+#end
+
+#foreach ($column in $oneQueryParamColumns)
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public List<${ClassName}> findListBy${column.upperAttrName}(${ClassName}${column.upperAttrName}ServiceBO serviceBO) {
+		return ${className}Mapper.selectBy${column.upperAttrName}(${className}MapStruct.${column.lowerAttrName}ServiceBOToMapperBO(serviceBO));
+	}
+
+#end
+
+#foreach ($column in $listQueryParamColumns)
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public List<${ClassName}> findListBy${column.upperAttrName}List(${ClassName}${column.upperAttrName}ListServiceBO serviceBO) {
+		return ${className}Mapper.selectBy${column.upperAttrName}List(${className}MapStruct.${column.lowerAttrName}ListServiceBOToMapperBO(serviceBO));
+	}
+
+#end
+
+#if($isIncludeParentId)
+	/**
+	 * 级联组件回显、选择功能
+	 * @param serviceBO parentIdList 级联的父 ID，比如传：1,13,1301
+	 * @param serviceBO showLevel 显示层级，比如传 2，即使数据是支持 4 级数据，也是只展示 2 级数据出来
+	 */
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public List<${ClassName}> findListByTreeCascade(TreeCascadeServiceBO serviceBO) {
+		Long firstNode = serviceBO.getParentIdList().get(0);
+
+		IdServiceBO idServiceBO = new IdServiceBO();
+		idServiceBO.setId(firstNode);
+		idServiceBO.setTenantId(serviceBO.getTenantId());
+		idServiceBO.setDeleteEnum(DeleteEnum.NOT_DELETED.getCode());
+
+		${ClassName} parentObject = findOneById(idServiceBO);
+
+		ParentIdServiceBO parentIdServiceBO = new ParentIdServiceBO();
+		parentIdServiceBO.setParentId(firstNode);
+		parentIdServiceBO.setTenantId(serviceBO.getTenantId());
+		parentIdServiceBO.setDeleteEnum(DeleteEnum.NOT_DELETED.getCode());
+
+		List<${ClassName}> childrenList = findListByParentId(parentIdServiceBO);
+		int flag = 0;
+		recursionToListByTreeCascade(flag, parentObject, childrenList, serviceBO);
+		return childrenList;
+	}
+
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public List<${ClassName}> findRecursionListByParentId(ParentIdServiceBO serviceBO) {
+		if (null == serviceBO.getParentId()) {
+			serviceBO.setParentId(GlobalConstant.TOP_PARENT_ID);
+		}
+
+		List<${ClassName}> result = new ArrayList<>();
+
+		IdServiceBO idServiceBO = new IdServiceBO();
+		idServiceBO.setId(serviceBO.getParentId());
+		idServiceBO.setTenantId(serviceBO.getTenantId());
+		idServiceBO.setDeleteEnum(DeleteEnum.NOT_DELETED.getCode());
+
+		${ClassName} parentObject = findOneById(idServiceBO);
+		result.add(parentObject);
+
+		List<${ClassName}> childrenList = findListByParentId(serviceBO);
+		recursionToList(result, childrenList);
+		return result;
+	}
+
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public List<${ClassName}> findTreeListByParentId(ParentIdServiceBO serviceBO) {
+		if (null == serviceBO.getParentId()) {
+			serviceBO.setParentId(GlobalConstant.TOP_PARENT_ID);
+		}
+
+		IdServiceBO idServiceBO = new IdServiceBO();
+		idServiceBO.setId(serviceBO.getParentId());
+		idServiceBO.setTenantId(serviceBO.getTenantId());
+		idServiceBO.setDeleteEnum(DeleteEnum.NOT_DELETED.getCode());
+
+		${ClassName} parentObject = findOneById(idServiceBO);
+		List<${ClassName}> childrenList = findListByParentId(serviceBO);
+		recursionToTreeList(parentObject, childrenList);
+		return childrenList;
+	}
+
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public List<${ClassName}> findListAndCheckParentEnumByParentId(ParentIdServiceBO serviceBO) {
+		List<${ClassName}> entityList = findListByParentId(serviceBO);
+		if (CollectionUtil.isEmpty(entityList)) {
+			return entityList;
+		}
+
+		for (${ClassName} entity : entityList) {
+			ParentIdServiceBO parentIdServiceBO = new ParentIdServiceBO();
+			parentIdServiceBO.setParentId(entity.getId());
+			parentIdServiceBO.setTenantId(serviceBO.getTenantId());
+			parentIdServiceBO.setDeleteEnum(DeleteEnum.NOT_DELETED.getCode());
+			List<${ClassName}> listByParentId = findListByParentId(parentIdServiceBO);
+			if (CollectionUtil.isNotEmpty(listByParentId)) {
+				entity.setBoolParentEnum(BooleanEnum.YES.getCode());
+			} else {
+				entity.setBoolParentEnum(BooleanEnum.NO.getCode());
+			}
+		}
+
+		return entityList;
+	}
+
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public List<${ClassName}> findListByParentId(ParentIdServiceBO serviceBO) {
+		ParentIdMapperBO mapperBO = parentIdAndParentIdListMapStruct.serviceBOToMapperBO(serviceBO);
+		return ${className}Mapper.selectByParentId(mapperBO);
+	}
+
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public List<${ClassName}> findListByParentIdList(ParentIdListServiceBO serviceBO) {
+		ParentIdListMapperBO mapperBO = parentIdAndParentIdListMapStruct.serviceBOToMapperBO(serviceBO);
+		return ${className}Mapper.selectByParentIdList(mapperBO);
+	}
+
+#end
+
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public List<${ClassName}> findListByIdList(IdListServiceBO serviceBO) {
+		return ${className}Mapper.selectByIdList(idAndIdListMapStruct.serviceBOToMapperBO(serviceBO));
+	}
+
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public ${ClassName} findOneByServiceBO(${ClassName}PageQueryServiceBO serviceBO) {
+		List<${ClassName}> list = ${className}Mapper.selectByPageQueryMapperBo(${className}MapStruct.pageQueryServiceBOToMapperBO(serviceBO));
+		if (CollectionUtil.isNotEmpty(list)) {
+			return list.get(0);
+		}
+		return null;
+	}
+
+#foreach ($column in $likeParamColumns)
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public PageInfo findPageBy${column.upperAttrName}WhereLike(${ClassName}${column.upperAttrName}LikeQueryServiceBO serviceBO) {
+		return PageHelper.startPage(serviceBO.getPageNum(), serviceBO.getPageSize()).doSelectPageInfo(() -> {
+			${className}Mapper.selectBy${column.upperAttrName}WhereLike(${className}MapStruct.${column.lowerAttrName}LikeQueryServiceBOToMapperBO(serviceBO));
+		});
+	}
+
+#end
+
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public List<${ClassName}> findListByServiceBO(${ClassName}PageQueryServiceBO serviceBO) {
+		return ${className}Mapper.selectByPageQueryMapperBo(${className}MapStruct.pageQueryServiceBOToMapperBO(serviceBO));
+	}
+
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public PageInfo findPageByServiceBO(${ClassName}PageQueryServiceBO serviceBO) {
+		return PageHelper.startPage(serviceBO.getPageNum(), serviceBO.getPageSize()).doSelectPageInfo(() -> {
+			${className}Mapper.selectByPageQueryMapperBo(${className}MapStruct.pageQueryServiceBOToMapperBO(serviceBO));
+		});
+	}
+
+	@Transactional(readOnly = true)
+#if($boolEnableCache && $isRelationTable == false)
+	@Cacheable(keyGenerator = "keyGeneratorToServiceParam")
+#end
+	public Integer findCountByServiceBO(${ClassName}PageQueryServiceBO serviceBO) {
+		return ${className}Mapper.selectCountByPageQueryMapperBo(${className}MapStruct.pageQueryServiceBOToMapperBO(serviceBO));
+	}
+
+	// =====================================查询业务 end=====================================
+	// =====================================操作业务 start=====================================
+
+#if($boolEnableCache && $isRelationTable == false)
+	/**
+	 * 该方法名不允许修改，被用在反射上
+	 */
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+	public void cacheEvict() {
+		// 用来主动清除所有缓存数据
+	}
+#end
+
+	@Transactional(rollbackFor = Exception.class)
+#if($boolEnableCache && $isRelationTable == false)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+#end
+	public Integer create(${ClassName}CreateServiceBO serviceBO) {
+		${ClassName} entity = initCreateBasicParam(serviceBO);
+#if($isIncludeCreateDate)
+		if (null == entity.getCreateUserId()) {
+			entity.setCreateUserId(GlobalConstant.TOP_ADMIN_USER_ID);
+		}
+#end
+#if($isIncludeUpdateDate)
+		if (null == entity.getUpdateUserId()) {
+			entity.setUpdateUserId(GlobalConstant.TOP_ADMIN_USER_ID);
+		}
+#end
+		return ${className}Mapper.insert(entity);
+	}
+## -------------------------------------------------------------------
+
+#if($isRelationTable)
+	@Transactional(rollbackFor = Exception.class)
+#if($boolEnableCache && $isRelationTable == false)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+#end
+	public Integer batchCreate(${ClassName}BatchCreateServiceBO serviceBO) {
+
+#foreach ($column in $foreignKeyColumns)
+		List<${column.attrType}> ${column.lowerAttrName}List = serviceBO.get${column.upperAttrName}List();
+#end
+
+#foreach ($column in $foreignKeyColumns)
+		if (CollectionUtil.isEmpty(${column.lowerAttrName}List)) {
+			throw new BusinessException("必须至少选择一个 ${column.lowerAttrName}");
+		}
+
+#end
+
+		List<${ClassName}> entityList = new ArrayList<>();
+		for (Long ${foreignKeyFirstColumn.lowerAttrName} : ${foreignKeyFirstColumn.lowerAttrName}List) {
+			for (Long ${foreignKeySecondColumn.lowerAttrName} : ${foreignKeySecondColumn.lowerAttrName}List) {
+				${ClassName}PageQueryServiceBO pageQueryServiceBO = new ${ClassName}PageQueryServiceBO();
+				pageQueryServiceBO.set${foreignKeyFirstColumn.upperAttrName}(${foreignKeyFirstColumn.lowerAttrName});
+				pageQueryServiceBO.set${foreignKeySecondColumn.upperAttrName}(${foreignKeySecondColumn.lowerAttrName});
+				List<${ClassName}> listByServiceBO = findListByServiceBO(pageQueryServiceBO);
+				if (CollectionUtil.isNotEmpty(listByServiceBO)) {
+					continue;
+				}
+
+				${ClassName}CreateServiceBO createServiceBO = new ${ClassName}CreateServiceBO();
+				createServiceBO.set${foreignKeyFirstColumn.upperAttrName}(${foreignKeyFirstColumn.lowerAttrName});
+				createServiceBO.set${foreignKeySecondColumn.upperAttrName}(${foreignKeySecondColumn.lowerAttrName});
+#if($isIncludeCreateDate)
+				createServiceBO.setCreateDate(serviceBO.getCreateDate());
+				createServiceBO.setCreateUserId(serviceBO.getCreateUserId());
+#end
+#if($isIncludeUpdateDate)
+				createServiceBO.setUpdateDate(serviceBO.getUpdateDate());
+				createServiceBO.setUpdateUserId(serviceBO.getUpdateUserId());
+#end
+
+				${ClassName} entity = initCreateBasicParam(createServiceBO);
+#if($isIncludeCreateDate)
+				if (null == entity.getCreateUserId()) {
+					entity.setCreateUserId(GlobalConstant.TOP_ADMIN_USER_ID);
+				}
+#end
+#if($isIncludeUpdateDate)
+				if (null == entity.getUpdateUserId()) {
+					entity.setUpdateUserId(GlobalConstant.TOP_ADMIN_USER_ID);
+				}
+#end
+
+				entityList.add(entity);
+			}
+		}
+
+		return ${className}Mapper.batchInsertList(entityList);
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+#if($boolEnableCache && $isRelationTable == false)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+#end
+	public Integer batchCreateBy${foreignKeyFirstColumn.upperAttrName}ListToDelete(${ClassName}BatchCreateServiceBO serviceBO) {
+
+#foreach ($column in $foreignKeyColumns)
+		List<${column.attrType}> ${column.lowerAttrName}List = serviceBO.get${column.upperAttrName}List();
+#end
+
+#foreach ($column in $foreignKeyColumns)
+		if (CollectionUtil.isEmpty(${column.lowerAttrName}List)) {
+			throw new BusinessException("必须至少选择一个 ${column.lowerAttrName}");
+		}
+
+#end
+
+		// cdk8stodo 先删除旧数据，然后再新增新数据（自己判断哪个外键是核心）
+		${ClassName}${foreignKeyFirstColumn.upperAttrName}ListToDeleteServiceBO deleteServiceBO = new ${ClassName}${foreignKeyFirstColumn.upperAttrName}ListToDeleteServiceBO();
+		deleteServiceBO.set${foreignKeyFirstColumn.upperAttrName}List(${foreignKeyFirstColumn.lowerAttrName}List);
+		deleteServiceBO.setTenantId(serviceBO.getTenantId());
+		batchDeleteBy${foreignKeyFirstColumn.upperAttrName}List(deleteServiceBO);
+
+		List<${ClassName}> entityList = new ArrayList<>();
+		for (Long ${foreignKeyFirstColumn.lowerAttrName} : ${foreignKeyFirstColumn.lowerAttrName}List) {
+			for (Long ${foreignKeySecondColumn.lowerAttrName} : ${foreignKeySecondColumn.lowerAttrName}List) {
+				${ClassName}CreateServiceBO createServiceBO = new ${ClassName}CreateServiceBO();
+				createServiceBO.set${foreignKeyFirstColumn.upperAttrName}(${foreignKeyFirstColumn.lowerAttrName});
+				createServiceBO.set${foreignKeySecondColumn.upperAttrName}(${foreignKeySecondColumn.lowerAttrName});
+#if($isIncludeCreateDate)
+				createServiceBO.setCreateDate(serviceBO.getCreateDate());
+				createServiceBO.setCreateUserId(serviceBO.getCreateUserId());
+#end
+#if($isIncludeUpdateDate)
+				createServiceBO.setUpdateDate(serviceBO.getUpdateDate());
+				createServiceBO.setUpdateUserId(serviceBO.getUpdateUserId());
+#end
+
+				${ClassName} entity = initCreateBasicParam(createServiceBO);
+#if($isIncludeCreateDate)
+				if (null == entity.getCreateUserId()) {
+					entity.setCreateUserId(GlobalConstant.TOP_ADMIN_USER_ID);
+				}
+#end
+#if($isIncludeUpdateDate)
+				if (null == entity.getUpdateUserId()) {
+					entity.setUpdateUserId(GlobalConstant.TOP_ADMIN_USER_ID);
+				}
+#end
+
+				entityList.add(entity);
+			}
+		}
+
+		return ${className}Mapper.batchInsertList(entityList);
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+#if($boolEnableCache && $isRelationTable == false)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+#end
+	public Integer batchCreateBy${foreignKeySecondColumn.upperAttrName}ListToDelete(${ClassName}BatchCreateServiceBO serviceBO) {
+
+#foreach ($column in $foreignKeyColumns)
+		List<${column.attrType}> ${column.lowerAttrName}List = serviceBO.get${column.upperAttrName}List();
+#end
+
+#foreach ($column in $foreignKeyColumns)
+		if (CollectionUtil.isEmpty(${column.lowerAttrName}List)) {
+			throw new BusinessException("必须至少选择一个 ${column.lowerAttrName}");
+		}
+
+#end
+
+		// cdk8stodo 先删除旧数据，然后再新增新数据（自己判断哪个外键是核心）
+		${ClassName}${foreignKeySecondColumn.upperAttrName}ListToDeleteServiceBO deleteServiceBO = new ${ClassName}${foreignKeySecondColumn.upperAttrName}ListToDeleteServiceBO();
+		deleteServiceBO.set${foreignKeySecondColumn.upperAttrName}List(${foreignKeySecondColumn.lowerAttrName}List);
+		deleteServiceBO.setTenantId(serviceBO.getTenantId());
+		batchDeleteBy${foreignKeySecondColumn.upperAttrName}List(deleteServiceBO);
+
+		List<${ClassName}> entityList = new ArrayList<>();
+		for (Long ${foreignKeySecondColumn.lowerAttrName} : ${foreignKeySecondColumn.lowerAttrName}List) {
+			for (Long ${foreignKeyFirstColumn.lowerAttrName} : ${foreignKeyFirstColumn.lowerAttrName}List) {
+				${ClassName}CreateServiceBO createServiceBO = new ${ClassName}CreateServiceBO();
+				createServiceBO.set${foreignKeyFirstColumn.upperAttrName}(${foreignKeyFirstColumn.lowerAttrName});
+				createServiceBO.set${foreignKeySecondColumn.upperAttrName}(${foreignKeySecondColumn.lowerAttrName});
+#if($isIncludeCreateDate)
+				createServiceBO.setCreateDate(serviceBO.getCreateDate());
+				createServiceBO.setCreateUserId(serviceBO.getCreateUserId());
+#end
+#if($isIncludeUpdateDate)
+				createServiceBO.setUpdateDate(serviceBO.getUpdateDate());
+				createServiceBO.setUpdateUserId(serviceBO.getUpdateUserId());
+#end
+
+				${ClassName} entity = initCreateBasicParam(createServiceBO);
+#if($isIncludeCreateDate)
+				if (null == entity.getCreateUserId()) {
+					entity.setCreateUserId(GlobalConstant.TOP_ADMIN_USER_ID);
+				}
+#end
+#if($isIncludeUpdateDate)
+				if (null == entity.getUpdateUserId()) {
+					entity.setUpdateUserId(GlobalConstant.TOP_ADMIN_USER_ID);
+				}
+#end
+
+				entityList.add(entity);
+			}
+		}
+
+		return ${className}Mapper.batchInsertList(entityList);
+	}
+#end
+
+## -------------------------------------------------------------------
+	@Transactional(rollbackFor = Exception.class)
+#if($boolEnableCache && $isRelationTable == false)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+#end
+	public Integer update(${ClassName}UpdateServiceBO serviceBO) {
+		${ClassName} entity = initUpdateBasicParam(serviceBO);
+		return ${className}Mapper.updateByPrimaryKeySelective(entity);
+	}
+
+#if($isIncludeStateEnum)
+	@Transactional(rollbackFor = Exception.class)
+#if($boolEnableCache && $isRelationTable == false)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+#end
+	public Integer batchUpdateState(BatchUpdateStateServiceBO serviceBO) {
+		return ${className}Mapper.updateStateEnumByIdList(${className}MapStruct.batchUpdateStateServiceBOToMapperBO(serviceBO));
+	}
+#end
+
+#if($isRelationTable)
+	@Transactional(rollbackFor = Exception.class)
+	public Integer deleteBy${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}(${ClassName}${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}ToDeleteServiceBO serviceBO) {
+		return ${className}Mapper.deleteBy${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}(${className}MapStruct.deleteBy${foreignKeyFirstColumn.upperAttrName}And${foreignKeySecondColumn.upperAttrName}ServiceBOToMapperBO(serviceBO));
+	}
+#end
+
+	@Transactional(rollbackFor = Exception.class)
+#if($boolEnableCache && $isRelationTable == false)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+#end
+	public Integer batchDelete(BatchDeleteServiceBO serviceBO) {
+#if($isIncludeDeleteEnum)
+		return ${className}Mapper.updateDeleteEnumByIdList(${className}MapStruct.batchDeleteServiceBOToMapperBO(serviceBO));
+#else
+		return ${className}Mapper.deleteByIdList(${className}MapStruct.batchDeleteServiceBOToMapperBO(serviceBO));
+#end
+	}
+
+#foreach ($column in $foreignKeyColumns)
+	@Transactional(rollbackFor = Exception.class)
+#if($boolEnableCache && $isRelationTable == false)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+#end
+	public Integer batchDeleteBy${column.upperAttrName}List(${ClassName}${column.upperAttrName}ListToDeleteServiceBO serviceBO) {
+#if($isIncludeDeleteEnum)
+		return ${className}Mapper.updateDeleteEnumBy${column.upperAttrName}List(${className}MapStruct.${column.lowerAttrName}ListToDeleteServiceBOToMapperBO(serviceBO));
+#else
+		return ${className}Mapper.deleteBy${column.upperAttrName}List(${className}MapStruct.${column.lowerAttrName}ListToDeleteServiceBOToMapperBO(serviceBO));
+#end
+	}
+#end
+
+## -------------------------------------------------------------------
+#if($isRelationTable == false)
+	@Transactional(rollbackFor = Exception.class)
+#if($boolEnableCache && $isRelationTable == false)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+#end
+	public Integer batchCreate(List<${ClassName}CreateServiceBO> serviceBOList) {
+		int result = 0;
+		if (CollectionUtil.isNotEmpty(serviceBOList)) {
+			for (${ClassName}CreateServiceBO serviceBO : serviceBOList) {
+				Integer createResult = create(serviceBO);
+				result = result + createResult;
+			}
+		}
+		return result;
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+#if($boolEnableCache && $isRelationTable == false)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+#end
+	public Integer batchUpdate(List<${ClassName}UpdateServiceBO> serviceBOList) {
+		int result = 0;
+		if (CollectionUtil.isNotEmpty(serviceBOList)) {
+			for (${ClassName}UpdateServiceBO serviceBO : serviceBOList) {
+				int executeResult;
+				if (null == serviceBO.getId()) {
+					// 新增操作
+					${ClassName}CreateServiceBO createServiceBO = ${className}MapStruct.updateServiceBOToCreateServiceBO(serviceBO);
+					executeResult = create(createServiceBO);
+				} else {
+					// 更新操作
+					executeResult = update(serviceBO);
+				}
+				result = result + executeResult;
+			}
+		}
+		return result;
+	}
+#end
+
+
+#if($isIncludeRanking)
+	@Transactional(rollbackFor = Exception.class)
+#if($boolEnableCache && $isRelationTable == false)
+	@CacheEvict(allEntries = true, beforeInvocation = false)
+#end
+	public void batchUpdateRanking(List<BatchUpdateRankingServiceBO> serviceBOList) {
+		List<BatchUpdateRankingMapperBO> mapperBOList = batchUpdateRankingMapStruct.batchUpdateRankingServiceBOToMapperBO(serviceBOList);
+		if (CollectionUtil.isEmpty(mapperBOList)) {
+			return;
+		}
+		${className}Mapper.batchUpdateRanking(mapperBOList);
+	}
+#end
+
+	// =====================================操作业务 end=====================================
+	// =====================================私有方法 start=====================================
+
+	public ${ClassName} initCreateBasicParam(${ClassName}CreateServiceBO serviceBO) {
+		// cdk8stodo 根据业务补充其他属性
+		if (null == serviceBO.getId()) {
+			serviceBO.setId(GenerateIdUtil.getId());
+		}
+
+#foreach ($column in $initCreateBasicParamColumns)
+		if (null == serviceBO.get${column.upperAttrName}()) {
+#if($column.attrType == "BigDecimal")
+			serviceBO.set${column.upperAttrName}(new BigDecimal(${column.columnDefault}));
+#elseif($column.attrType == "Integer")
+			serviceBO.set${column.upperAttrName}(${column.columnDefault});
+#elseif($column.attrType == "Long")
+			serviceBO.set${column.upperAttrName}(${column.columnDefault}L);
+#else
+			serviceBO.set${column.upperAttrName}("${column.columnDefault}");
+#end
+		}
+#end
+
+#if($isIncludeCreateDate)
+		if (null == serviceBO.getCreateDate()) {
+			serviceBO.setCreateDate(DatetimeUtil.currentEpochMilli());
+		}
+#end
+#if($isIncludeUpdateDate)
+		if (null == serviceBO.getUpdateDate()) {
+			serviceBO.setUpdateDate(DatetimeUtil.currentEpochMilli());
+		}
+#end
+#if($isIncludeTenantId)
+		if (null == serviceBO.getTenantId()) {
+			serviceBO.setTenantId(GlobalConstant.TOP_TENANT_ID);
+		}
+#end
+#if($isIncludeRanking)
+		if (null == serviceBO.getRanking()) {
+			serviceBO.setRanking(GlobalConstant.MAX_RANKING);
+		}
+#end
+#if($isIncludeDeleteEnum)
+		if (null == serviceBO.getDeleteEnum()) {
+			serviceBO.setDeleteEnum(DeleteEnum.NOT_DELETED.getCode());
+		}
+#end
+#if($isIncludeStateEnum)
+		if (null == serviceBO.getStateEnum()) {
+			serviceBO.setStateEnum(StateEnum.ENABLE.getCode());
+		}
+#end
+
+#if($isIncludeParentId)
+		Long parentId = serviceBO.getParentId();
+		if (parentId.equals(GlobalConstant.TOP_PARENT_ID)) {
+			serviceBO.setParentIds(String.valueOf(GlobalConstant.TOP_PARENT_ID));
+		} else {
+
+			IdServiceBO idServiceBO = new IdServiceBO();
+			idServiceBO.setId(parentId);
+			idServiceBO.setDeleteEnum(DeleteEnum.NOT_DELETED.getCode());
+
+			${ClassName} parentObject = findOneById(idServiceBO);
+			if (null == parentObject) {
+				throw new BusinessException("该父节点不存在");
+			}
+			serviceBO.setParentIds(parentObject.getParentIds() + "," + parentId);
+		}
+#end
+
+		return ${className}MapStruct.createServiceBOToEntity(serviceBO);
+	}
+
+	public ${ClassName} initUpdateBasicParam(${ClassName}UpdateServiceBO serviceBO) {
+		return ${className}MapStruct.updateServiceBOToEntity(serviceBO);
+	}
+
+#if($isIncludeParentId)
+	private void recursionToList(List<${ClassName}> result, List<${ClassName}> childrenList) {
+		if (CollectionUtil.isNotEmpty(childrenList)) {
+			result.addAll(childrenList);
+			for (${ClassName} entity : childrenList) {
+				if (entity.getParentId().equals(entity.getId())) {
+					// 避免错误数据造成的死循环
+					continue;
+				}
+				ParentIdServiceBO parentIdServiceBO = new ParentIdServiceBO();
+				parentIdServiceBO.setParentId(entity.getId());
+				parentIdServiceBO.setTenantId(entity.getTenantId());
+				parentIdServiceBO.setDeleteEnum(DeleteEnum.NOT_DELETED.getCode());
+				List<${ClassName}> children = findListByParentId(parentIdServiceBO);
+				recursionToList(result, children);
+			}
+		}
+	}
+
+	public void recursionToTreeList(${ClassName} parentObject, List<${ClassName}> childrenList) {
+		if (CollectionUtil.isNotEmpty(childrenList)) {
+			if (null != parentObject) {
+				// 数据库没有设置顶层节点的信息，当 parentId = 1L 的时候 parentObject 为 null
+				parentObject.setBoolParentEnum(BooleanEnum.YES.getCode());
+				parentObject.setChildren(childrenList);
+			}
+
+			for (${ClassName} entity : childrenList) {
+				if (entity.getParentId().equals(entity.getId())) {
+					// 避免错误数据造成的死循环
+					continue;
+				}
+				ParentIdServiceBO parentIdServiceBO = new ParentIdServiceBO();
+				parentIdServiceBO.setParentId(entity.getId());
+				parentIdServiceBO.setTenantId(entity.getTenantId());
+				parentIdServiceBO.setDeleteEnum(DeleteEnum.NOT_DELETED.getCode());
+
+				List<${ClassName}> children = findListByParentId(parentIdServiceBO);
+				recursionToTreeList(entity, children);
+			}
+		}
+	}
+
+	private void recursionToListByTreeCascade(int flag, ${ClassName} parentObject, List<${ClassName}> childrenList, TreeCascadeServiceBO serviceBO) {
+		Integer showLevel = serviceBO.getShowLevel();
+		flag = flag + 1;
+		if (flag > showLevel) {
+			return;
+		}
+		if (CollectionUtil.isNotEmpty(childrenList)) {
+			if (null != parentObject) {
+				// 数据库没有设置顶层节点的信息，当 parentId = 1L 的时候 parentObject 为 null
+				parentObject.setBoolParentEnum(BooleanEnum.YES.getCode());
+				parentObject.setChildren(childrenList);
+			}
+
+			for (${ClassName} entity : childrenList) {
+				Long entityId = entity.getId();
+				entity.setLabel(entity.get${TreeName}());
+				entity.setValue(entity.getId());
+				if (entity.getParentId().equals(entityId)) {
+					// 避免错误数据造成的死循环
+					continue;
+				}
+
+				ParentIdServiceBO parentIdServiceBO = new ParentIdServiceBO();
+				parentIdServiceBO.setParentId(entityId);
+				parentIdServiceBO.setTenantId(serviceBO.getTenantId());
+				parentIdServiceBO.setDeleteEnum(DeleteEnum.NOT_DELETED.getCode());
+				List<${ClassName}> children = findListByParentId(parentIdServiceBO);
+
+				if (CollectionUtil.isNotEmpty(children)) {
+					entity.setBoolParentEnum(BooleanEnum.YES.getCode());
+					entity.setIsLeaf(false);
+				} else {
+					entity.setBoolParentEnum(BooleanEnum.NO.getCode());
+					entity.setIsLeaf(true);
+				}
+
+				if (flag == showLevel) {
+					// 显示的层级到了，则认为所有都是子节点
+					entity.setBoolParentEnum(BooleanEnum.NO.getCode());
+					entity.setIsLeaf(true);
+				}
+
+				if (serviceBO.getParentIdList().contains(entityId)) {
+					recursionToListByTreeCascade(flag, entity, children, serviceBO);
+				}
+			}
+		}
+	}
+#end
+	// =====================================私有方法 end=====================================
+
+}
+

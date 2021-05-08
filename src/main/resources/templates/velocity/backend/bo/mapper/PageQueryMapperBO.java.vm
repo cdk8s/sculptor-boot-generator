@@ -1,0 +1,18 @@
+package ${javaRootPackage}.pojo.bo.mapper.${classname};
+
+import ${javaRootPackage}.pojo.bo.mapper.${classname}.bases.${ClassName}PageQueryBaseMapperBO;
+import ${javaRootPackage}.pojo.dto.param.bases.PageParam;
+import ${javaRootPackage}.enums.DeleteEnum;
+import lombok.*;
+import java.math.BigDecimal;
+
+@Setter
+@Getter
+@NoArgsConstructor
+@ToString(callSuper = true)
+public class ${ClassName}PageQueryMapperBO extends ${ClassName}PageQueryBaseMapperBO {
+
+	private static final long serialVersionUID = -1L;
+
+
+}
