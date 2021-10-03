@@ -22,7 +22,7 @@
 
 		<velocity.version>1.7</velocity.version>
 
-		<log4j.version>2.11.2</log4j.version>
+		<log4j.version>2.13.3</log4j.version>
 		<jul-to-slf4j.version>1.7.26</jul-to-slf4j.version>
 		<disruptor.version>3.4.2</disruptor.version>
 
